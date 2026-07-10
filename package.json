@@ -1,0 +1,52 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ag-grid-community": "^35.3.0",
+    "ag-grid-react": "^35.3.0",
+    "axios": "^1.13.2",
+    "datatables.net": "^2.3.8",
+    "datatables.net-dt": "^2.3.8",
+    "datatables.net-responsive": "^3.0.8",
+    "datatables.net-responsive-dt": "^3.0.8",
+    "framer-motion": "^12.26.2",
+    "geojson-vt": "^4.0.2",
+    "html-to-image": "^1.11.13",
+    "jquery": "^4.0.0",
+    "leaflet": "^1.9.4",
+    "leaflet-image": "^0.4.0",
+    "leaflet.fullscreen": "^5.3.1",
+    "leaflet.markercluster": "^1.5.3",
+    "lucide-react": "^0.562.0",
+    "proj4": "^2.20.4",
+    "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.2.0",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.12.0",
+    "shpjs": "^6.2.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.2.4"
+  }
+}
