@@ -43,6 +43,12 @@ export default function LandingPage({
 
     const [rawData, setRawData] = useState(null);
     const mapApiRef = useRef(null);
+    const [ latestData, setLatestData ] = useState({
+        anio: 2026,
+        mes: 'Enero',
+        alertas: 228,
+        provincias: 20,
+    });
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
     useEffect(() => {
@@ -327,7 +333,7 @@ export default function LandingPage({
                                             <div>
 
                                                 <h4 className="font-bold text-xl">
-                                                    17
+                                                    {latestData.provincias}
                                                 </h4>
 
                                                 <p className="text-sm text-slate-500">
@@ -349,11 +355,11 @@ export default function LandingPage({
                                             <div>
 
                                                 <h4 className="font-bold text-xl">
-                                                    273
+                                                    {latestData.alertas}
                                                 </h4>
 
                                                 <p className="text-sm text-slate-500">
-                                                    Alertas en Mayo 2026
+                                                    Alertas en {latestData.mes} de {latestData.anio}
                                                 </p>
 
                                             </div>
