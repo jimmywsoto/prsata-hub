@@ -45,7 +45,7 @@ export default function LandingPage({
     const mapApiRef = useRef(null);
     const [ latestData, setLatestData ] = useState({
         anio: 2026,
-        mes: 'Enero',
+        mes: 'Junio',
         alertas: 228,
         provincias: 20,
     });
