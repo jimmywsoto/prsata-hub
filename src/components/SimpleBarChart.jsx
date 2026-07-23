@@ -1,3 +1,9 @@
+{/* 
+    DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
+    CREATE AT: February, 2026.
+    VERSIÓN: 2.0.0
+*/}
+
 {/* -------------------------------------------------------- REACT */ }
 import {
     useEffect,
@@ -15,6 +21,8 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
+
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
     CategoryScale,
@@ -48,10 +56,11 @@ function defaultConfig() {
 
 {/* ============================================================ SIMPLE BAR CHART */ }
 export const SimpleBarChart = forwardRef(({
-  title = "Simple Bar Chart - JWS Ingeniería, 2026",
-  data = [],
-  height = 320,
-  config = {},
+    title = "Simple Bar Chart - JWS Ingeniería, 2026",
+    displayTitle = true,
+    data = [],
+    height = 320,
+    config = {},
 }, ref) => {
     if (!Array.isArray(data) || data.length === 0) {
         return (
@@ -134,19 +143,43 @@ export const SimpleBarChart = forwardRef(({
         responsive: true,
         maintainAspectRatio: false,
 
+        layout: {
+            padding: {
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10
+            }
+        },
+
         plugins: {
             legend: {
                 display: false,
             },
 
             title: {
-                display: true,
+                display: displayTitle,
                 text: title,
                 font: {
                     size: config.titleFontSize || 16,
                     weight: config.titleWeight || 'bold',
                 },
                 color: config.titleColor || 'gray',
+            },
+
+            datalabels: {
+                display: true,
+                color: config.labelColor || '#e0dbdb',
+                anchor: 'end', // Position: 'start', 'center', 'end'
+                align: 'top',  // Alignment: 'top', 'bottom', 'center'
+                font: { weight: 'bold', size: 11 },
+                textStrokeWidth: 0,
+                formatter: (value, context) => {
+                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    const percentage = (value / total * 100);
+                    // Suprimir si muy pequeño (<5%)
+                    return percentage < 5 ? '' : percentage.toFixed(1) + '%';
+                },
             },
 
             tooltip: {
@@ -201,6 +234,7 @@ export const SimpleBarChart = forwardRef(({
                 ref={chartRef}
                 data={chartData}
                 options={options}
+                plugins={[ChartDataLabels]}
             />
         </div>
     );
