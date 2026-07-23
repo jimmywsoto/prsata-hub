@@ -1,3 +1,9 @@
+{/* 
+    DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
+    CREATE AT: February, 2026.
+    VERSIÓN: 2.0.0
+*/}
+
 {/* -------------------------------------------------------- REACT */ }
 import {
     useRef,
@@ -49,6 +55,7 @@ function defaultConfig() {
 {/* ============================================================ RADAR CHART */ }
 export const RadarChart = forwardRef(({
   title = "Radar Chart - JWS Ingeniería, 2026",
+    displayTitle = true,
   data = [],
   height = 320,
   config = {},
@@ -122,6 +129,15 @@ export const RadarChart = forwardRef(({
     responsive: true,
     maintainAspectRatio: false,
 
+    layout: {
+      padding: {
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10
+      }
+    },
+
     scales: {
       r: {
         display:true,
@@ -157,7 +173,7 @@ export const RadarChart = forwardRef(({
       },
 
       title: {
-        display: true,
+        display: displayTitle,
         text: title,
         font: {
           size: config.titleFontSize || 16,
