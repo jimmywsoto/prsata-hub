@@ -4,7 +4,7 @@ import LeftSidebar from "../components/LeftAside";
 import RightSidebar from "../components/RightAside";
 import CardsContainer from "../components/CardContainer";
 import { DATA_FILTERS } from "../data/dataFilters";
-import { FIELD_ALIASES, VISIBLE_FIELDS, NAVBAR_TITLES } from "../data/dataMeta";
+import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
 import { panesConfig } from "../config/panes.config";
 import { fichasLayersConfig } from "../config/layers.config";
@@ -31,7 +31,6 @@ export default function FichasMonitoreoDashboard({
     filters = { filters },
     location = {},
     onStats = {},
-    onLoad = {},
 }) {
     const [rawData, setRawData] = useState(null);
     const [statistics, setStatistics] = useState('');
@@ -39,7 +38,6 @@ export default function FichasMonitoreoDashboard({
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
     useEffect(() => {
-        onLoad(NAVBAR_TITLES.fichas);
         fetch("/data/DB_FICHAS_MONITOREO_P.geojson")
             .then((res) => res.json())
             .then(setRawData)
