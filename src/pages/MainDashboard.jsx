@@ -10,7 +10,7 @@ import { Map, Database, ChartNoAxesCombined } from 'lucide-react';
 import axios from "axios";
 
 {/* -------------------------------------------------------- DATA */ }
-import { FIELD_ALIASES, VISIBLE_FIELDS, NAVBAR_TITLES } from "../data/dataMeta";
+import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
 import { panesConfig } from "../config/panes.config";
 import { mainLayersConfig } from "../config/layers.config";
@@ -49,7 +49,6 @@ export default function MainDashboard({
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
     useEffect(() => {
-        onLoad(NAVBAR_TITLES.dashboard);
         fetch("/data/DB_ALERTAS_SATA_P.geojson")
             .then((res) => res.json())
             .then(setRawData)
