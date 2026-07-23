@@ -34,8 +34,6 @@ import RadarChart from "../components/RadarChart";
 import { SimpleBarChart } from "../components/SimpleBarChart";
 import Loader from "../components/Loader";
 
-import ReportGenerator from "../components/reports/ReportGenerator";
-
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 export default function MainDashboard({
     externalLayers = [],
@@ -45,9 +43,9 @@ export default function MainDashboard({
     onLoad = () => {},
 }) {
     const [rawData, setRawData] = useState(null);
+    const [mobileTab, setMobileTab] = useState("map");
     const mapApiRef = useRef(null);
-
-    
+    const mapApiRef2 = useRef(null);
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
     useEffect(() => {
@@ -87,16 +85,16 @@ export default function MainDashboard({
         }
 
         return {
-            total: filteredData.features.length,
-            provincia: multiGroupBy(filteredData, "DPA_DESPRO"),
-            canton: multiGroupBy(filteredData, "DPA_DESCAN"),
-            parroquia: multiGroupBy(filteredData, "DPA_DESPAR"),
-            severidad: multiGroupBy(filteredData, "severidad"),
-            delimitacion: multiGroupBy(filteredData, "delimitaci"),
-            anio: multiGroupBy(filteredData, "ano"),
-            mes: multiGroupBy(filteredData, "fin"),
-            delxsev: agruparParaStackedBar(filteredData?.features, 'fin', 'severidad', stackedOptions),
-            anioline: agruparParaStackedBar(filteredData?.features, 'fin', 'ano', stackedOptions)
+            total: filteredData.features.length, // Used in: dataCards
+            provincia: multiGroupBy(filteredData, "DPA_DESPRO"), // Used in: dataCards, RightAside
+            canton: multiGroupBy(filteredData, "DPA_DESCAN"), // Used in: RightAside
+            parroquia: multiGroupBy(filteredData, "DPA_DESPAR"), // Used in: RightAside
+            severidad: multiGroupBy(filteredData, "severidad"), // Used in: RightAside
+            delimitacion: multiGroupBy(filteredData, "delimitaci"), // Used in: dataCards, RightAside
+            anio: multiGroupBy(filteredData, "ano"), // Used in: dataCards
+            mes: multiGroupBy(filteredData, "fin"), // Used in: dataCards
+            //delxsev: agruparParaStackedBar(filteredData?.features, 'fin', 'severidad', stackedOptions), // Used in: NOT USED HERE
+            //anioline: agruparParaStackedBar(filteredData?.features, 'fin', 'ano', stackedOptions) // Used in: NOT USED HERE, BUT IT USED IN REGISTRODASHBOARD.JSX
         };
     }, [filteredData]);
 
@@ -105,9 +103,16 @@ export default function MainDashboard({
     }, [stats]);
 
     useEffect(() => {
-        if (!location || !mapApiRef.current) return;
+        if (!location || !mapApiRef.current || !mapApiRef2.current) return;
 
         mapApiRef.current.setLocation({
+            lat: location.lat,
+            lng: location.lng,
+            zoom: 14,
+            popup: location.label
+        });
+
+        mapApiRef2.current.setLocation({
             lat: location.lat,
             lng: location.lng,
             zoom: 14,
@@ -144,103 +149,6 @@ export default function MainDashboard({
         ),
     };
 
-    const [mobileTab, setMobileTab] = useState("map");
-
-    const chartRefs = {
-        provincia:
-            useRef(null),
-
-        severidad:
-            useRef(null),
-
-        periodo:
-            useRef(null)
-    };
-
-    const reportGeneratorRef =
-        useRef(null);
-
-    const provinciaChartRef =
-        useRef(null);
-
-    const severidadChartRef =
-        useRef(null);
-
-    const periodoChartRef =
-        useRef(null);
-
-    const [reportData, setReportData] = useState({});
-
-    const generateHtml = async (e, report) => {
-        e.preventDefault();
-
-        console.log('ReportData on submit:', report);
-
-        try {
-            const payload = {
-                reportData: report
-            };
-
-            const response = await axios.post(
-                `${backendUrl}/api/report`,
-                payload
-            );
-
-            console.log(response);
-
-        } catch (err) {
-            console.log(err);
-        } finally {
-            console.log('Completo');
-        }
-    };
-
-    const generatePdf = async (e, report) => {
-
-        e.preventDefault();
-
-        try {
-
-            const response = await axios.post(
-                `${backendUrl}/api/report`,
-                {
-                    reportData: report
-                },
-                {
-                    responseType: 'blob'
-                }
-            );
-
-            const blob = new Blob(
-                [response.data],
-                {
-                    type: 'application/pdf'
-                }
-            );
-
-            const url =
-                window.URL.createObjectURL(blob);
-
-            const link =
-                document.createElement('a');
-
-            link.href = url;
-            link.download = 'Reporte_SATA.pdf';
-
-            document.body.appendChild(link);
-
-            link.click();
-
-            link.remove();
-
-            window.URL.revokeObjectURL(url);
-
-        } catch (err) {
-
-            console.error(err);
-        }
-    };
-
     {/* ============================================================ RENDER */ }
     if (!rawData) {
         return <Loader/>;
@@ -251,21 +159,21 @@ export default function MainDashboard({
 
             <div className="flex flex-col h-screen w-screen overflow-hidden bg-gray-100">
 
-                {/* Layout 1 */}
+                {/* Layout */}
                 <main className="flex-1 overflow-hidden">
 
-                    {/* Desktop */}
-                    <div className="hidden md:grid md:grid-cols-7 h-full gap-4 p-4">
+                    {/* Desktop View */}
+                    <div className="hidden md:grid md:grid-cols-6 h-full gap-4 p-4">
 
-                        {/* Escritorio */}
-                        <aside className="hidden md:flex col-span-1 h-full overflow-y-auto">
+                        <aside className="col-span-1 w-full h-full overflow-y-auto">
                             <div className="h-full shadow-md">
                                 <CardsContainer data={dataCards} />
                             </div>
                         </aside>
 
-                        <section className="col-span-4 flex-1 h-full min-w-0">
-                            <div className="h-full bg-white rounded-2xl shadow-md overflow-hidden">
+                        <section className="col-span-3 flex-1 h-full min-w-0">
+                            <div className="h-full bg-white rounded-lg shadow-md overflow-hidden">
+        
                                 <GeoJSONVTMap
                                     baseMapsConfig={baseMapsConfig}
                                     panesConfig={panesConfig}
@@ -290,164 +198,152 @@ export default function MainDashboard({
                                     externalLayers={externalLayers}
                                     filters={filters}
                                     onMapReady={(api) => {
-                                        //mapApiRef.current = api;
+                                        mapApiRef.current = api;
                                         //mapApiRef = api;
+                                        //console.log('Map loaded: ', api)
                                     }}
                                 />
+
                             </div>
                         </section>
 
-                        <aside className="hidden md:flex col-span-2 h-full">
+                        <aside className="col-span-2 h-full">
                             <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
 
-                                {/* Fila 1 - BarChart ocupa ambas columnas */}
-                                <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                    <SimpleBarChart
-                                        ref={provinciaChartRef}
-                                        title={"Alertas SATA por Provincia"}
-                                        data={stats?.provincia}
-                                        config={{
-                                            titleColor: '#10952b',
-                                            titleFontSize: 18,
-                                            titleWeight: 'bold',
-                                            orderByLabels: false, // Default is order by values
-                                            configPalette: {
-                                                palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                                gradientPalette: ["#ef4444", "#3b82f6"],
-                                                categorizedPalette: {
-                                                    'ALTA': '#cd6155',
-                                                    'MEDIA': '#eb984e',
-                                                    'BAJA': '#f4d03f',
-                                                }
-                                            },
-                                            chartStyle: {
-                                                borderColor: 'rgba(66, 141, 67, 0.137)',
-                                                borderWidth: 2,
-                                                hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                                hoverBorderWidth: 3,
-                                            },
-                                        }}
-                                    />
+                                {/* Fila 1 - BarChart */}
+                                <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+                                    <span
+                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                    >
+                                        Recuento de Alertas SATA (Por Provincia)
+                                    </span>
+
+                                    <div className="w-full h-full flex items-center">
+                                        <SimpleBarChart
+                                            title={"Alertas SATA por Provincia"}
+                                            displayTitle={false}
+                                            data={stats?.provincia}
+                                            config={{
+                                                titleColor: '#10952b',
+                                                titleFontSize: 18,
+                                                titleWeight: 'bold',
+                                                labelColor: '#676767',
+                                                orderByLabels: false, // Default is order by values
+                                                configPalette: {
+                                                    palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
+                                                    gradientPalette: ["#ef4444", "#3b82f6"],
+                                                    categorizedPalette: {
+                                                        'ALTA': '#cd6155',
+                                                        'MEDIA': '#eb984e',
+                                                        'BAJA': '#f4d03f',
+                                                    }
+                                                },
+                                                chartStyle: {
+                                                    borderColor: 'rgba(66, 141, 67, 0.137)',
+                                                    borderWidth: 2,
+                                                    hoverBorderColor: "rgba(30, 159, 228, 0.75)",
+                                                    hoverBorderWidth: 3,
+                                                },
+                                            }}
+                                        />
+                                    </div>
+
                                 </div>
 
                                 {/* Fila 2 - Doughnut */}
-                                <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                    <DoughnutChart
-                                        ref={severidadChartRef}
-                                        title={"Estadísticas por Severidad"}
-                                        data={stats?.severidad}
-                                        config={{
-                                            titleColor: '#10952b',
-                                            titleFontSize: 18,
-                                            titleWeight: 'bold',
-                                            orderByLabels: false, // Default is order by values
-                                            configPalette: {
-                                                palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                //gradientPalette: ["#ef4444", "#3b82f6"],
-                                                //customPalette: ["yellow", "blue", "red"],
-                                                categorizedPalette: {
-                                                    'ALTA': '#cd6155',
-                                                    'MEDIA': '#eb984e',
-                                                    'BAJA': '#f4d03f',
-                                                }
-                                            },
-                                            chartStyle: {
-                                                borderColor: 'rgb(255, 255, 255)',
-                                                borderWidth: 2,
-                                                hoverBorderColor: "rgba(30, 228, 70, 0.75)",
-                                                hoverBorderWidth: 3,
-                                            },
-                                        }}
-                                    />
+                                <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+                                    
+                                    <span
+                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                    >
+                                        Estadísticas por Severidad
+                                    </span>
+
+                                    <div className="h-full flex items-center">
+                                        <DoughnutChart
+                                            title={"Estadísticas por Severidad"}
+                                            displayTitle={false}
+                                            data={stats?.severidad}
+                                            config={{
+                                                titleColor: '#10952b',
+                                                titleFontSize: 18,
+                                                titleWeight: 'bold',
+                                                labelColor: '#f7f6f6',
+                                                orderByLabels: false, // Default is order by values
+                                                configPalette: {
+                                                    palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
+                                                    //gradientPalette: ["#ef4444", "#3b82f6"],
+                                                    //customPalette: ["yellow", "blue", "red"],
+                                                    categorizedPalette: {
+                                                        'ALTA': '#cd6155',
+                                                        'MEDIA': '#eb984e',
+                                                        'BAJA': '#f4d03f',
+                                                    }
+                                                },
+                                                chartStyle: {
+                                                    borderColor: 'rgb(255, 255, 255)',
+                                                    borderWidth: 2,
+                                                    hoverBorderColor: "rgba(30, 228, 70, 0.75)",
+                                                    hoverBorderWidth: 3,
+                                                },
+                                            }}
+                                        />
+                                    </div>
+
                                 </div>
 
                                 {/* Fila 2 - Radar */}
-                                <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                    <RadarChart
-                                        ref={periodoChartRef}
-                                        title={"Estadísticas por Periodo"}
-                                        data={stats?.mes}
-                                        config={{
-                                            titleColor: '#10952b',
-                                            titleFontSize: 18,
-                                            titleWeight: 'bold',
-                                            orderByLabels: true, // Default (false): is order by values
-                                            configPalette: {
-                                                palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                gradientPalette: ["#ef4444", "#3b82f6"],
-                                                customPalette: ["yellow", "blue", "red"],
-                                                categorizedPalette: {
-                                                    'ALTA': '#cd6155',
-                                                    'MEDIA': '#eb984e',
-                                                    'BAJA': '#f4d03f',
-                                                }
-                                            },
-                                            chartStyle: {
-                                                backgroundColor: "rgba(246, 151, 9, 0.41)",
-                                                borderColor: "rgb(236, 105, 17)",
-                                                borderWidth: 2,
-                                                pointBackgroundColor: "rgb(209, 51, 51)",
-                                                pointBorderColor: "#fff",
-                                                pointBorderWidth: 2,
-                                                pointHoverBackgroundColor: "#fff",
-                                                pointHoverBorderColor: "rgba(59,130,246,1)",
-                                            },
-                                        }}
-                                    />
+                                <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+                                    
+                                    <span
+                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                    >
+                                        Estadísticas por Periodo
+                                    </span>
+
+                                    <div className="h-full flex items-center">
+                                        <RadarChart
+                                            title={"Estadísticas por Periodo"}
+                                            displayTitle={false}
+                                            data={stats?.mes}
+                                            config={{
+                                                titleColor: '#10952b',
+                                                titleFontSize: 18,
+                                                titleWeight: 'bold',
+                                                orderByLabels: true, // Default (false): is order by values
+                                                configPalette: {
+                                                    palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
+                                                    gradientPalette: ["#ef4444", "#3b82f6"],
+                                                    customPalette: ["yellow", "blue", "red"],
+                                                    categorizedPalette: {
+                                                        'ALTA': '#cd6155',
+                                                        'MEDIA': '#eb984e',
+                                                        'BAJA': '#f4d03f',
+                                                    }
+                                                },
+                                                chartStyle: {
+                                                    backgroundColor: "rgba(246, 151, 9, 0.41)",
+                                                    borderColor: "rgb(236, 105, 17)",
+                                                    borderWidth: 2,
+                                                    pointBackgroundColor: "rgb(209, 51, 51)",
+                                                    pointBorderColor: "#fff",
+                                                    pointBorderWidth: 2,
+                                                    pointHoverBackgroundColor: "#fff",
+                                                    pointHoverBorderColor: "rgba(59,130,246,1)",
+                                                },
+                                            }}
+                                        />
+
+                                    </div>
+
                                 </div>
-
-                                {/*<ReportGenerator
-                                    ref={reportGeneratorRef}
-                                    template="sata-trimestral"
-                                    filters={filters}
-                                    filteredData={filteredData}
-                                    stats={stats}
-                                    mapApiRef={mapApiRef}
-                                    chartRefs={{
-                                        provincia:
-                                            provinciaChartRef,
-
-                                        severidad:
-                                            severidadChartRef,
-
-                                        periodo:
-                                            periodoChartRef,
-                                    }}
-                                    onSuccess={(report) => {
-                                        console.log(
-                                            "ReportData:",
-                                            report
-                                        );
-                                    }}
-                                    onError={(error) => {
-                                        console.error(
-                                            "Error:",
-                                            error
-                                        );
-                                    }}
-                                />
-
-                                <button
-                                    onClick={async (e) => {
-
-                                        const report =
-                                            await reportGeneratorRef
-                                                .current
-                                                .generate();
-
-                                        setReportData(report);
-                                        //await generateHtml(e, report);
-                                        await generatePdf(e, report);
-                                    }}
-                                >
-                                    Generar reporte
-                                </button>*/}
 
                             </div>
                         </aside>
+                        
                     </div>
 
-                    {/* Mobile */}
+                    {/* Mobile View */}
                     <div className=" h-full flex flex-col">
 
                         <div className="flex-1 overflow-hidden">
@@ -477,7 +373,7 @@ export default function MainDashboard({
                                     externalLayers={externalLayers}
                                     filters={filters}
                                     onMapReady={(api) => {
-                                        mapApiRef.current = api;
+                                        mapApiRef2.current = api;
                                     }}
                                 />
                             )}
@@ -487,109 +383,130 @@ export default function MainDashboard({
                             )}
 
                             {mobileTab === "charts" && (
-                                <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
+                                <div className="grid grid-cols-2 grid-rows-2 gap-2 m-4 h-full">
 
-                                    {/* Fila 1 - BarChart ocupa ambas columnas */}
-                                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                        <SimpleBarChart
-                                            title={"Alertas SATA por Provincia"}
-                                            data={stats?.provincia}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                orderByLabels: false, // Default is order by values
-                                                configPalette: {
-                                                    palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                                    gradientPalette: ["#ef4444", "#3b82f6"],
-                                                    categorizedPalette: {
-                                                        'ALTA': '#cd6155',
-                                                        'MEDIA': '#eb984e',
-                                                        'BAJA': '#f4d03f',
-                                                    }
-                                                },
-                                                chartStyle: {
-                                                    borderColor: 'rgba(66, 141, 67, 0.137)',
-                                                    borderWidth: 2,
-                                                    hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                                    hoverBorderWidth: 3,
-                                                },
-                                            }}
-                                        />
+                                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+                                        <span
+                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                        >
+                                            Recuento de Alertas SATA (Por Provincia)
+                                        </span>
+
+                                        {/* Fila 1 - BarChart*/}
+                                        <div className="w-full h-full flex items-center">
+                                            <SimpleBarChart
+                                                title={"Alertas SATA por Provincia"}
+                                                displayTitle={false}
+                                                data={stats?.provincia}
+                                                config={{
+                                                    titleColor: '#10952b',
+                                                    titleFontSize: 18,
+                                                    titleWeight: 'bold',
+                                                    labelColor: '#676767',
+                                                    orderByLabels: false, // Default is order by values
+                                                    configPalette: {
+                                                        palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
+                                                        gradientPalette: ["#ef4444", "#3b82f6"],
+                                                        categorizedPalette: {
+                                                            'ALTA': '#cd6155',
+                                                            'MEDIA': '#eb984e',
+                                                            'BAJA': '#f4d03f',
+                                                        }
+                                                    },
+                                                    chartStyle: {
+                                                        borderColor: 'rgba(66, 141, 67, 0.137)',
+                                                        borderWidth: 2,
+                                                        hoverBorderColor: "rgba(30, 159, 228, 0.75)",
+                                                        hoverBorderWidth: 3,
+                                                    },
+                                                }}
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Fila 2 - Doughnut */}
-                                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                        <DoughnutChart
-                                            title={"Estadísticas por Severidad"}
-                                            data={stats?.severidad}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                orderByLabels: false, // Default is order by values
-                                                configPalette: {
-                                                    palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                    //gradientPalette: ["#ef4444", "#3b82f6"],
-                                                    //customPalette: ["yellow", "blue", "red"],
-                                                    categorizedPalette: {
-                                                        'ALTA': '#cd6155',
-                                                        'MEDIA': '#eb984e',
-                                                        'BAJA': '#f4d03f',
-                                                    }
-                                                },
-                                                chartStyle: {
-                                                    borderColor: 'rgb(255, 255, 255)',
-                                                    borderWidth: 2,
-                                                    hoverBorderColor: "rgba(30, 228, 70, 0.75)",
-                                                    hoverBorderWidth: 3,
-                                                },
-                                            }}
-                                        />
+                                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+
+                                        <span
+                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                        >
+                                            Estadísticas por Severidad
+                                        </span>
+
+                                        <div className="h-full flex items-center">
+                                            <DoughnutChart
+                                                title={"Estadísticas por Severidad"}
+                                                displayTitle={false}
+                                                data={stats?.severidad}
+                                                config={{
+                                                    titleColor: '#10952b',
+                                                    titleFontSize: 18,
+                                                    titleWeight: 'bold',
+                                                    labelColor: '#f7f6f6',
+                                                    orderByLabels: false, // Default is order by values
+                                                    configPalette: {
+                                                        palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
+                                                        //gradientPalette: ["#ef4444", "#3b82f6"],
+                                                        //customPalette: ["yellow", "blue", "red"],
+                                                        categorizedPalette: {
+                                                            'ALTA': '#cd6155',
+                                                            'MEDIA': '#eb984e',
+                                                            'BAJA': '#f4d03f',
+                                                        }
+                                                    },
+                                                    chartStyle: {
+                                                        borderColor: 'rgb(255, 255, 255)',
+                                                        borderWidth: 2,
+                                                        hoverBorderColor: "rgba(30, 228, 70, 0.75)",
+                                                        hoverBorderWidth: 3,
+                                                    },
+                                                }}
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Fila 2 - Radar */}
-                                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                        <RadarChart
-                                            title={"Estadísticas por Periodo"}
-                                            data={stats?.mes}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                orderByLabels: true, // Default (false): is order by values
-                                                configPalette: {
-                                                    palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                    gradientPalette: ["#ef4444", "#3b82f6"],
-                                                    customPalette: ["yellow", "blue", "red"],
-                                                    categorizedPalette: {
-                                                        'ALTA': '#cd6155',
-                                                        'MEDIA': '#eb984e',
-                                                        'BAJA': '#f4d03f',
-                                                    }
-                                                },
-                                                /*chartStyle: {
-                                                    backgroundColor: "rgba(37, 161, 54, 0.2)",
-                                                    borderColor: "rgb(114, 114, 30)",
-                                                    borderWidth: 3,
-                                                    pointBackgroundColor: "rgb(246, 59, 125)",
-                                                    pointBorderColor: "#fff",
-                                                    pointBorderWidth: 2,
-                                                    pointHoverBackgroundColor: "#fff",
-                                                    pointHoverBorderColor: "rgba(59,130,246,1)",
-                                                },*/
-                                                chartStyle: {
-                                                    backgroundColor: "rgba(246, 151, 9, 0.41)",
-                                                    borderColor: "rgb(236, 105, 17)",
-                                                    borderWidth: 2,
-                                                    pointBackgroundColor: "rgb(209, 51, 51)",
-                                                    pointBorderColor: "#fff",
-                                                    pointBorderWidth: 2,
-                                                    pointHoverBackgroundColor: "#fff",
-                                                    pointHoverBorderColor: "rgba(59,130,246,1)",
-                                                },
-                                            }}
-                                        />
+                                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+
+                                        <span
+                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                        >
+                                            Estadísticas por Periodo
+                                        </span>
+
+                                        <div className="h-full flex items-center">
+                                            <RadarChart
+                                                title={"Estadísticas por Periodo"}
+                                                displayTitle={false}
+                                                data={stats?.mes}
+                                                config={{
+                                                    titleColor: '#10952b',
+                                                    titleFontSize: 18,
+                                                    titleWeight: 'bold',
+                                                    orderByLabels: true, // Default (false): is order by values
+                                                    configPalette: {
+                                                        palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
+                                                        gradientPalette: ["#ef4444", "#3b82f6"],
+                                                        customPalette: ["yellow", "blue", "red"],
+                                                        categorizedPalette: {
+                                                            'ALTA': '#cd6155',
+                                                            'MEDIA': '#eb984e',
+                                                            'BAJA': '#f4d03f',
+                                                        }
+                                                    },
+                                                    chartStyle: {
+                                                        backgroundColor: "rgba(246, 151, 9, 0.41)",
+                                                        borderColor: "rgb(236, 105, 17)",
+                                                        borderWidth: 2,
+                                                        pointBackgroundColor: "rgb(209, 51, 51)",
+                                                        pointBorderColor: "#fff",
+                                                        pointBorderWidth: 2,
+                                                        pointHoverBackgroundColor: "#fff",
+                                                        pointHoverBorderColor: "rgba(59,130,246,1)",
+                                                    },
+                                                }}
+                                            />
+                                        </div>
                                     </div>
 
                                 </div>
