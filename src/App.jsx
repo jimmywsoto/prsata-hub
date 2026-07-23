@@ -9,7 +9,7 @@ import { useState } from "react";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 {/* -------------------------------------------------------- DATA */ }
-import { META, NAVBAR_TITLES } from "./data/dataMeta";
+import { META } from "./data/dataMeta";
 
 {/* -------------------------------------------------------- CONTEXT */ }
 import { useAuth } from "./context/AuthContext";
@@ -47,7 +47,6 @@ function App() {
     const { user } = useAuth();
     const [leftOpen, setLeftOpen] = useState(false);
     const [rightOpen, setRightOpen] = useState(false);
-    const [title, setTitle] = useState(NAVBAR_TITLES.landing);
 
     // Integración mapas
     const [layers, setLayers] = useState([]);
@@ -75,7 +74,6 @@ function App() {
 
                     {/* NAVBAR */}
                     <Navbar
-                        title={title}
                         user={user}
                         onToggleLeft={() => setLeftOpen(!leftOpen)}
                         onToggleRight={() => setRightOpen(!rightOpen)}
@@ -110,11 +108,8 @@ function App() {
                                             externalLayers={layers}
                                             filters={filters}
                                             location={location}
-                                            onStats={(stats => {
-                                                if (stats) return setStats(stats);
-                                            })}
-                                            onLoad={(title => {
-                                                setTitle(title);
+                                            onStats={(statistics => {
+                                                if (statistics) return setStats(statistics);
                                             })}
                                         />
                                     }
@@ -197,11 +192,8 @@ function App() {
                                                     externalLayers={layers}
                                                     filters={filters}
                                                     location={location}
-                                                    onStats={(stats => {
-                                                        if (stats) return setStats(stats);
-                                                    })}
-                                                    onLoad={(title => {
-                                                        setTitle(title);
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
                                                     })}
                                                 />
                                             </AccesibleRoute>
@@ -218,11 +210,8 @@ function App() {
                                                     externalLayers={layers}
                                                     filters={filters}
                                                     location={location}
-                                                    onStats={(stats => {
-                                                        if (stats) return setStats(stats);
-                                                    })}
-                                                    onLoad={(title => {
-                                                        setTitle(title);
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
                                                     })}
                                                 />
                                             </AccesibleRoute>
@@ -239,11 +228,8 @@ function App() {
                                                     externalLayers={layers}
                                                     filters={filters}
                                                     location={location}
-                                                    onStats={(stats => {
-                                                        if (stats) return setStats(stats);
-                                                    })}
-                                                    onLoad={(title => {
-                                                        setTitle(title);
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
                                                     })}
                                                 />
                                             </AccesibleRoute>
@@ -254,17 +240,16 @@ function App() {
                                     path="/seguimiento"
                                     element={
                                         <ProtectedRoute>
-                                            <SeguimientoDashboard
-                                                externalLayers={layers}
-                                                filters={filters}
-                                                location={location}
-                                                onStats={(stats => {
-                                                    if (stats) return setStats(stats);
-                                                })}
-                                                onLoad={(title => {
-                                                    setTitle(title);
-                                                })}
-                                            />
+                                            <SuperadminRoute>
+                                                <SeguimientoDashboard
+                                                    externalLayers={layers}
+                                                    filters={filters}
+                                                    location={location}
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
+                                                    })}
+                                                />
+                                            </SuperadminRoute>
                                         </ProtectedRoute>
                                     }
                                 />
@@ -276,11 +261,8 @@ function App() {
                                                 externalLayers={layers}
                                                 filters={filters}
                                                 location={location}
-                                                onStats={(stats => {
-                                                    if (stats) return setStats(stats);
-                                                })}
-                                                onLoad={(title => {
-                                                    setTitle(title);
+                                                onStats={(statistics => {
+                                                    if (statistics) return setStats(statistics);
                                                 })}
                                             />
                                         </ProtectedRoute>
