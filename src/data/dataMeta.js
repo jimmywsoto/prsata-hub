@@ -76,9 +76,63 @@ export const VISIBLE_FIELDS = {
 };
 
 export const NAVBAR_TITLES = {
-  landing: 'PR-SATA | Plataforma de Reportes de Alertas Tempranas por Deforestación',
-  dashboard: 'PR-SATA | Dashboard de Alertas Tempranas por Deforestación',
-  fichas: 'PR-SATA | Dashboard de Fichas de Monitoreo Satelital',
-  seguimiento: 'PR-SATA | Seguimiento de Atención a Alertas Tempranas',
-  registro: 'PR-SATA | Registro de Alertas Tempranas por Deforestación', 
-};
+  "/": {
+    extended: 'PR-SATA | Plataforma de Reportes de Alertas Tempranas por Deforestación',
+    compacted: 'PR-SATA'
+  },
+
+  "/dashboard": {
+    extended: 'PR-SATA | Dashboard de Alertas Tempranas por Deforestación',
+    compacted: 'Dashboard'
+  },
+
+  "/registro": {
+    extended: 'PR-SATA | Registro de Alertas Tempranas por Deforestación',
+    compacted: 'Registro Alertas'
+  },
+
+  "/seguimiento": {
+    extended: 'PR-SATA | Seguimiento de Atención a Alertas Tempranas',
+    compacted: 'Seguimiento Alertas'
+  },
+
+  "/fichas": {
+    extended: 'PR-SATA | Dashboard de Fichas de Monitoreo Satelital',
+    compacted: 'Fichas Monitoreo'
+  },
+
+  "/report": {
+    extended: 'PR-SATA | Generador de Reportes de Alertas Tempranas por Deforestación',
+    compacted: 'Generador Reportes'
+  },
+
+  "/login": {
+    extended: 'PR-SATA | Plataforma de Reportes de Alertas Tempranas por Deforestación',
+    compacted: 'Login'
+  },
+
+  "/profile": {
+    extended: 'PR-SATA | Configuración de Perfil',
+    compacted: 'Perfil'
+  },
+
+  "/reset-pass": {
+    extended: 'PR-SATA | Configuración de Contraseña',
+    compacted: 'Restablecer Contraseña'
+  },
+
+  "/access-panel": {
+    extended: 'PR-SATA | Panel de Control de Accesos de Usuarios',
+    compacted: 'Acceso de Usuarios'
+  },
+
+  "/cache-panel": {
+    extended: 'PR-SATA | Panel de Control de Basemap Planet',
+    compacted: 'Basemaps Planet'
+  },
+
+  "/planet-validation-viewer": {
+    extended: 'PR-SATA | Visor Satelital PlanetScope',
+    compacted: 'Visor Satelital'
+  }
+}
