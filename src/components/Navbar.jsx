@@ -29,6 +29,8 @@ import {
     CalendarDays,
 } from 'lucide-react';
 
+import { NAVBAR_TITLES } from "../data/dataMeta";
+
 {/* -------------------------------------------------------- CONTEXT */ }
 import { useAuth } from "../context/AuthContext";
 import { accessPanelsRoutes } from "../config/accesibleroutes.config";
@@ -37,7 +39,6 @@ import { accessPanelsRoutes } from "../config/accesibleroutes.config";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 const Navbar = ({
-    title,
     user = null, // { name: "Jimmy W Soto" }
     onToggleLeft,
     onToggleRight,
@@ -62,8 +63,6 @@ const Navbar = ({
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-    /* TESTING */
 
     const location = useLocation();
     const config =
@@ -98,57 +97,56 @@ const Navbar = ({
             style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
-            icon: MapPin,
-            label: "Atención a Alertas",
-            path: "/seguimiento",
-            show: true,
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
-        },
-        {
             icon: CalendarDays,
             label: "Fichas de Monitoreo",
             path: "/fichas",
             show: true,
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: User,
             label: "Editar perfil",
             path: "/profile",
             show: true,
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
             icon: FileText,
             label: "Generar Reporte",
             path: "/report",
             show: true,
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: ShieldUser,
             label: "Access Panel",
             path: "/access-panel",
             show: user?.role === "superadmin",
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
             icon: CloudSync,
             label: "Update Cache",
             path: "/cache-panel",
             show: user?.role === "superadmin",
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: SatelliteDish,
             label: "Val-SAT",
             path: "/planet-validation-viewer",
             show: ["superadmin", "admin"].includes(user?.role),
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+        },
+        {
+            icon: MapPin,
+            label: "Atención a Alertas",
+            path: "/seguimiento",
+            show: user?.role === "superadmin",
             style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
-        
     ];
-
+    
     return (
         <header className="h-12 flex items-center justify-between px-4 py-2 bg-green-700 text-white shadow-md">
 
@@ -169,8 +167,12 @@ const Navbar = ({
                         alt="Logo"
                         className="h-8 w-32"
                     />
-                    <h1 className=" text-sm md:text-2xl font-semibold leading-tight truncate w-[200px] md:w-full">
-                        {title}
+                    <h1 className="hidden md:flex text-2xl font-semibold leading-tight truncate w-[200px] md:w-full">
+                        {NAVBAR_TITLES[location.pathname]?.extended || 'PR-SATA'}
+                    </h1>
+
+                    <h1 className="md:hidden text-xl font-semibold leading-tight truncate w-[200px]">
+                        {NAVBAR_TITLES[location.pathname]?.compacted || 'PR-SATA'}
                     </h1>
                 </Link>
             </div>
