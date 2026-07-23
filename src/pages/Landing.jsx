@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
-import { FIELD_ALIASES, VISIBLE_FIELDS, NAVBAR_TITLES } from "../data/dataMeta";
+import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
 import { panesConfig } from "../config/panes.config";
 import { applyFilters } from "../components/CommonFunctions";
@@ -37,7 +37,6 @@ export default function LandingPage({
     filters = { filters },
     location = {},
     onStats = {},
-    onLoad = {},
 }) {
     const navigate = useNavigate();
 
@@ -52,7 +51,6 @@ export default function LandingPage({
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
     useEffect(() => {
-        onLoad(NAVBAR_TITLES.landing);
         fetch("/data/DB_ALERTAS_SATA_P.geojson")
             .then((res) => res.json())
             .then(setRawData)
