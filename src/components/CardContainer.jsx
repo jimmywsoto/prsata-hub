@@ -11,7 +11,7 @@ import CardMetricBasic from "./CardMetricBasic";
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 const CardsContainer = ({ data }) => {
   return (
-    <section className="flex flex-col h-full w-full md:w-64 overflow-hidden">
+    <section className="flex flex-col h-full w-full overflow-hidden">
       <CardMetric
         icon={ data.icon || "/bg-alert.png"}
         title={ data.title || "Alertas SATA"}
