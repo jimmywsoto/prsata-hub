@@ -1,3 +1,5 @@
+const CARTO_API_KEY = import.meta.env.CARTO_API_KEY || 'NoKey';
+
 export const baseMapsConfig = {
   osm: {
     name: "OpenStreetMap",
@@ -16,7 +18,7 @@ export const baseMapsConfig = {
   },
   cartoLight: {
     name: "Carto Light",
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    url: `https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`,
     options: {
       pane: "lowestPane"
     },
@@ -24,7 +26,7 @@ export const baseMapsConfig = {
   },
   cartoDark: {
     name: "Carto Dark",
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    url: `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`,
     options: {
       pane: "lowestPane"
     }
