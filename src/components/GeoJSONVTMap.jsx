@@ -1,7 +1,8 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    VERSIÓN: 2.0.0
+    UPDATED AT: September, 2026
+    VERSIÓN: 2.1.0
 */}
 
 {/* -------------------------------------------------------- REACT */ }
@@ -9,7 +10,6 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import geojsonvt from "geojson-vt";
 import proj4 from "proj4";
-import { Layers, Earth, Database, X } from 'lucide-react';
 import leafletImage from 'leaflet-image';
 import { toPng } from 'html-to-image';
 
@@ -29,17 +29,19 @@ proj4.defs(
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import { codMes, formatValue, parseDate } from "./CommonFunctions";
+import LayerControl from "./LayerControl";
+import WMSFeatureInfo from "./WMSFeatureInfo";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 export default function GeoJSONVTMap({
   baseMapsConfig,
+  wmsLayersConfig,
   panesConfig,
   data,
   defaultLayers = [],
   externalLayers = [],
   filters = {},
   onMapReady = () => { },
-  location = {},
 }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -54,6 +56,13 @@ export default function GeoJSONVTMap({
   const [activeBasemap, setActiveBasemap] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
 
+  const [featureInfo, setFeatureInfo] = useState([]);
+  const [featureInfoLoading, setFeatureInfoLoading] = useState(false);
+  const [featureInfoError, setFeatureInfoError] = useState(null);
+  const [featureInfoOpen, setFeatureInfoOpen] = useState(false);
+
+  const featureInfoAbortControllerRef = useRef(null);
+
   {/* ============================================================ INIT MAP */ }
   useEffect(() => {
     const map = L.map(mapRef.current).setView([-2, -78], 6);
@@ -67,7 +76,6 @@ export default function GeoJSONVTMap({
     });
 
     // Build basemaps from config file
-    const baseMaps = {};
     let defaultId = null;
 
     Object.values(baseMapsConfig).forEach((cfg) => {
@@ -98,6 +106,14 @@ export default function GeoJSONVTMap({
     setActiveBasemap(defaultId);
 
     mapInstance.current = map;
+
+    // Here 001
+    // ============================================================
+    // WMS GETFEATUREINFO
+    // ============================================================
+
+    map.on("click", handleMapClick);
+
 
     // Creditos
     map.attributionControl.setPrefix(false); // Elimina los créditos por defecto
@@ -251,8 +267,34 @@ export default function GeoJSONVTMap({
 
     });
 
-    return () => map.remove();
+    //return () => map.remove();
+
+    return () => {
+
+      map.off("click", handleMapClick);
+
+      if (
+        featureInfoAbortControllerRef.current
+      ) {
+        featureInfoAbortControllerRef.current.abort();
+        featureInfoAbortControllerRef.current = null;
+      }
+
+      map.remove();
+    };
+
   }, []);
+
+  {/* ============================================================ LOAD WMS LAYERS */ }
+  useEffect(() => {
+
+    const map = mapInstance.current;
+
+    if (!map || !wmsLayersConfig?.length) return;
+
+    wmsLayersConfig.forEach(addWMSLayer); // Si sucede un error, mover a (Here 001)
+
+  }, [wmsLayersConfig]);
 
   {/* ============================================================ LOAD LAYERS */ }
   useEffect(() => {
@@ -349,83 +391,13 @@ export default function GeoJSONVTMap({
     });
   }, [externalLayers]);
 
-  {/* ============================================================ INIT TILE LAYERS */ }
-  /* DEPRECATED CODE: Deprecated because actually merge all layers in a layersRef.current registry */
-  /*useEffect(() => {
-    const map = mapInstance.current;
-    if (!map) return;
-
-    Object.entries(tileLayersRef.current).forEach(([id, obj]) => {
-
-      const filtered = applyFilters(obj.raw, filters, obj.filterConfig);
-
-      const tileIndex = geojsonvt(filtered, {
-        maxZoom: 18,
-        tolerance: 3,
-      });
-
-      // Remove layer
-      if (map.hasLayer(obj.layer)) {
-        map.removeLayer(obj.layer);
-      }
-
-      if (controlRef.current && controlRef.current._layers) {
-        controlRef.current.removeLayer(obj.layer);
-      }
-
-      const newLayer = createTileLayer(tileIndex, filtered, obj.style, obj.safePane, obj.attribution);
-      newLayer.addTo(map);
-
-      // Registry control again
-      controlRef.current.addOverlay(newLayer, obj.name);
-
-      obj.layer = newLayer;
-      obj.filtered = filtered;
-    });
-
-  }, [filters]);*/
-
-  {/* ============================================================ INIT VECTOR LAYERS */ }
-  /* DEPRECATED CODE: Deprecated because actually merge all layers in a layersRef.current registry */
-  /*useEffect(() => {
-    const map = mapInstance.current;
-    if (!map) return;
-
-    console.log(vectorLayersRef.current)
-    Object.entries(vectorLayersRef.current).forEach(([id, obj]) => {
-
-      // NO tocar la capa dinámica (ya viene filtrada desde Home)
-      if (obj.isDynamic) return;
-
-      const filtered = applyFilters(obj.raw, filters, obj.filterConfig);
-
-      // remover capa anterior
-      map.removeLayer(obj.layer);
-      controlRef.current.removeLayer(obj.layer);
-
-      const newLayer = createVectorLayer(filtered, {
-        style: obj.style,
-        cluster: obj.cluster,
-        popup: obj.popup,
-        pane: obj.safePane || "mediumPane",
-      });
-
-      newLayer.addTo(map);
-
-      controlRef.current.addOverlay(newLayer, obj.name);
-
-      obj.layer = newLayer;
-      obj.filtered = filtered;
-    });
-
-  }, [filters]);*/
-
   {/* ============================================================ INTERNAL UTILS */ }
   const loadLayerFromUrl = async (layer) => {
     const res = await fetch(layer.url);
     const geojson = await res.json();
 
-    addLayer(layer.id, geojson, layer.name, layer);
+    //addLayer(layer.id, geojson, layer.name, layer); //INIT VERSION
+    addLayer(layer.id, geojson, layer.name, layer, filters);
   };
 
   const addLayer = (id, geojson, name = "Capa", options = {}) => {
@@ -448,7 +420,7 @@ export default function GeoJSONVTMap({
       filterConfig = {},
       pane = "lowestPane",
       zoomLayer = false,
-      attribution = ""
+      attribution = "",
     } = options;
 
     // Pane validation
@@ -457,16 +429,24 @@ export default function GeoJSONVTMap({
     let layer;
     let bounds;
 
+    // Aplicar filtros iniciales
+    const filteredGeoJSON = applyFilters(
+      geojson,
+      filters,
+      filterConfig
+    );
+
     if (type === "tile") {
-      const tileIndex = geojsonvt(geojson, { maxZoom: 18, tolerance: 3 });
+
+      const tileIndex = geojsonvt(filteredGeoJSON, { maxZoom: 18, tolerance: 3 });
 
       layer = createTileLayer(tileIndex, geojson, style, safePane, attribution);
-      bounds = getGeoJSONBounds(geojson);
+      bounds = getGeoJSONBounds(filteredGeoJSON);
     }
 
     if (type === "vector") {
-      layer = createVectorLayer(geojson, { style, cluster, popup, pane: safePane, attribution });
-      bounds = layer.getBounds?.() ?? getGeoJSONBounds(geojson);
+      layer = createVectorLayer(filteredGeoJSON, { style, cluster, popup, pane: safePane, attribution });
+      bounds = layer.getBounds?.() ?? getGeoJSONBounds(filteredGeoJSON);
     }
 
     layer.addTo(map);
@@ -477,6 +457,7 @@ export default function GeoJSONVTMap({
       type,
       layer,
       raw: geojson,
+      filtered: filteredGeoJSON,
       style,
       popup,
       cluster,
@@ -496,7 +477,8 @@ export default function GeoJSONVTMap({
             ? {
               ...l,
               name,
-              visible: true
+              visible: true,
+              style,
             }
             : l
         );
@@ -508,6 +490,7 @@ export default function GeoJSONVTMap({
           id,
           name,
           visible: true,
+          style,
           type
         }
       ];
@@ -519,6 +502,89 @@ export default function GeoJSONVTMap({
         animate: true
       });
     }
+  };
+
+  const addWMSLayer = (config) => {
+
+    const map = mapInstance.current;
+
+    if (!map) return;
+
+    if (layersRef.current[config.id]) return;
+
+    const {
+      id,
+      name = "WMS",
+      url,
+      layers,
+      format = "image/png",
+      transparent = true,
+      version = "1.3.0",
+      opacity = 1,
+      pane = "lowestPane",
+      attribution = "",
+      visible = true,
+
+      // ========================================================
+      // GetFeatureInfo
+      // ========================================================
+      queryable = false,
+      infoFormat = "application/json",
+      crs = "EPSG:3857",
+      featureCount = 20
+
+
+
+    } = config;
+
+    if (!url || !layers) {
+      console.warn(`Configuración WMS inválida: ${id}`);
+      return;
+    }
+
+    const safePane = map.getPane(pane)
+      ? pane
+      : "lowestPane";
+
+    const layer = L.tileLayer.wms(url, {
+      layers,
+      format,
+      transparent,
+      version,
+      opacity,
+      pane: safePane,
+      attribution
+    });
+
+    if (visible) {
+      layer.addTo(map);
+    }
+
+    layersRef.current[id] = {
+      id,
+      name,
+      type: "wms",
+      layer,
+      visible,
+      pane: safePane,
+      opacity,
+      // GetFeatureInfo
+      queryable,
+      infoFormat,
+      crs,
+      featureCount,
+      config
+    };
+
+    setLayers(prev => [
+      ...prev,
+      {
+        id,
+        name,
+        type: "wms",
+        visible
+      }
+    ]);
   };
 
   const removeLayer = (id) => {
@@ -722,154 +788,567 @@ export default function GeoJSONVTMap({
     markerRef.current = group;
   };
 
+  // ================================================= GETFEATUREINFO FUNCTIONS
+  const getFeatureInfoUrl = (map, layerConfig, latlng) => {
+    const version = layerConfig.version || "1.3.0";
+    const infoFormat = layerConfig.infoFormat || "application/json";
+
+    // ------------------------------------------------------------
+    // Punto del clic en coordenadas de pantalla
+    // ------------------------------------------------------------
+    const point = map.latLngToContainerPoint(latlng);
+
+    const size = map.getSize();
+
+    // ------------------------------------------------------------
+    // BBOX en el CRS utilizado por Leaflet
+    // Leaflet utiliza EPSG:3857 por defecto
+    // ------------------------------------------------------------
+    const bounds = map.getBounds();
+    const crs = map.options.crs;
+
+    const southWest = crs.project(bounds.getSouthWest());
+    const northEast = crs.project(bounds.getNorthEast());
+
+    const bbox = [
+      southWest.x,
+      southWest.y,
+      northEast.x,
+      northEast.y
+    ].join(",");
+
+    // ------------------------------------------------------------
+    // Parámetros base WMS GetFeatureInfo
+    // ------------------------------------------------------------
+    const params = new URLSearchParams({
+      SERVICE: "WMS",
+      VERSION: version,
+      REQUEST: "GetFeatureInfo",
+
+      LAYERS: layerConfig.layers,
+      QUERY_LAYERS: layerConfig.layers,
+
+      INFO_FORMAT: infoFormat,
+
+      BBOX: bbox,
+      WIDTH: Math.round(size.x),
+      HEIGHT: Math.round(size.y),
+
+      FEATURE_COUNT: String(
+        layerConfig.featureCount || 20
+      )
+    });
+
+    // ------------------------------------------------------------
+    // WMS 1.3.0
+    // ------------------------------------------------------------
+    if (version === "1.3.0") {
+
+      params.set(
+        "CRS",
+        layerConfig.crs || "EPSG:3857"
+      );
+
+      params.set(
+        "I",
+        String(Math.round(point.x))
+      );
+
+      params.set(
+        "J",
+        String(Math.round(point.y))
+      );
+
+    } else {
+
+      // --------------------------------------------------------
+      // WMS 1.1.1
+      // --------------------------------------------------------
+      params.set(
+        "SRS",
+        layerConfig.crs || "EPSG:3857"
+      );
+
+      params.set(
+        "X",
+        String(Math.round(point.x))
+      );
+
+      params.set(
+        "Y",
+        String(Math.round(point.y))
+      );
+    }
+
+    return `${layerConfig.url}?${params.toString()}`;
+  };
+
+  const handleMapClick = async (e) => {
+    const map = mapInstance.current;
+
+    if (!map) return;
+
+    /*
+     * ============================================================
+     * BUSCAR WMS VISIBLES Y CONSULTABLES
+     * ============================================================
+     */
+
+    const queryableLayers = Object.values(
+      layersRef.current
+    ).filter((item) => {
+
+      if (item.type !== "wms") {
+        return false;
+      }
+
+      if (!item.queryable) {
+        return false;
+      }
+
+      return map.hasLayer(item.layer);
+    });
+
+    const queryableLayersParcialNOfuncionaBien = Object.values(layersRef.current).filter(
+        (item) =>
+            item.type === "wms" &&
+            item.queryable
+    );
+
+    /*
+     * No existen capas consultables
+     */
+
+    if (queryableLayers.length === 0) {
+      return;
+    }
+
+
+    /*
+     * ============================================================
+     * CANCELAR CONSULTA ANTERIOR
+     * ============================================================
+     */
+
+    if (featureInfoAbortControllerRef.current) {
+      featureInfoAbortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+
+    featureInfoAbortControllerRef.current = controller;
+
+    /*
+     * ============================================================
+     * LIMPIAR RESULTADO ANTERIOR
+     * ============================================================
+     */
+
+    setFeatureInfoOpen(true);
+    setFeatureInfo([]);
+    setFeatureInfoError(null);
+    setFeatureInfoLoading(true);
+
+    try {
+      /*
+       * ==========================================================
+       * CONSULTAS EN PARALELO
+       * ==========================================================
+       */
+
+      const results = await Promise.all(
+        queryableLayers.map(async (item) => {
+          const config = item.config;
+
+          const url = getFeatureInfoUrl(
+            map,
+            config,
+            e.latlng
+          );
+
+          try {
+            const response = await fetch(url, {
+              method: "GET",
+              signal: controller.signal,
+              headers: {
+                Accept:
+                  config.infoFormat === "text/html"
+                    ? "text/html,application/json"
+                    : "application/json,text/plain,text/html",
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}`
+              );
+            }
+
+            const contentType =
+              response.headers.get(
+                "content-type"
+              ) || "";
+
+            const text =
+              await response.text();
+
+            return {
+              item,
+              config,
+              contentType,
+              text,
+              error: null,
+            };
+
+          } catch (error) {
+
+            if (
+              error.name === "AbortError"
+            ) {
+              throw error;
+            }
+
+            console.error(
+              `Error GetFeatureInfo [${item.name}]`,
+              error
+            );
+
+            return {
+              item,
+              config,
+              contentType: "",
+              text: "",
+              error,
+            };
+          }
+        })
+      );
+
+      /*
+       * ==========================================================
+       * VERIFICAR CANCELACIÓN
+       * ==========================================================
+       */
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      /*
+       * ==========================================================
+       * CONVERTIR RESPUESTAS
+       * ==========================================================
+       */
+
+      const parsedResults = results
+        .map((result) => {
+
+          if (
+            result.error ||
+            !result.text?.trim()
+          ) {
+            return null;
+          }
+
+          const parsed =
+            parseFeatureInfoResponse(
+              result.text,
+              result.contentType
+            );
+
+          if (!parsed) {
+            return null;
+          }
+
+          /*
+           * JSON / GeoJSON
+           */
+
+          if (
+            parsed.type ===
+            "FeatureCollection"
+          ) {
+            if (
+              !parsed.features?.length
+            ) {
+              return null;
+            }
+
+            return {
+              layerId: result.item.id,
+              layerName: result.item.name,
+              type: "features",
+              features: parsed.features,
+            };
+          }
+
+          /*
+           * HTML
+           */
+
+          if (parsed.type === "html") {
+            return {
+              layerId: result.item.id,
+              layerName: result.item.name,
+              type: "html",
+              html: parsed.html,
+              features: [],
+            };
+          }
+
+          /*
+           * Texto
+           */
+
+          if (parsed.type === "text") {
+            return {
+              layerId: result.item.id,
+              layerName: result.item.name,
+              type: "text",
+              text: parsed.text,
+              features: [],
+            };
+          }
+
+          return null;
+        })
+        .filter(Boolean);
+
+      /*
+       * ==========================================================
+       * ACTUALIZAR COMPONENTE
+       * ==========================================================
+       */
+
+      setFeatureInfo(parsedResults);
+      setFeatureInfoLoading(false);
+      setFeatureInfoError(null);
+      setFeatureInfoOpen(true);
+
+    } catch (error) {
+
+      if (error.name === "AbortError") {
+        return;
+      }
+
+      console.error("Error consultando información WMS:", error);
+
+      setFeatureInfo([]);
+      setFeatureInfoLoading(false);
+      setFeatureInfoError(
+        error.message || "No fue posible obtener la información WMS."
+      );
+      setFeatureInfoOpen(true);
+
+    } finally {
+
+      if (!controller.signal.aborted) {
+        setFeatureInfoLoading(false);
+      }
+
+    }
+  };
+
+  const parseFeatureInfoResponse = (
+    text,
+    contentType = ""
+  ) => {
+    if (!text?.trim()) {
+      return null;
+    }
+
+    /*
+     * ============================================================
+     * JSON / GEOJSON
+     * ============================================================
+     */
+
+    if (
+      contentType.includes("application/json") ||
+      contentType.includes("geo+json") ||
+      contentType.includes("json")
+    ) {
+      try {
+        const data = JSON.parse(text);
+
+        /*
+         * GeoJSON FeatureCollection
+         */
+        if (Array.isArray(data.features)) {
+          return {
+            type: "FeatureCollection",
+            features: data.features.map((feature) => ({
+              type: "Feature",
+              geometry: feature.geometry || null,
+              properties: feature.properties || {},
+            })),
+          };
+        }
+
+        /*
+         * Feature individual
+         */
+        if (
+          data.type === "Feature" &&
+          data.properties
+        ) {
+          return {
+            type: "FeatureCollection",
+            features: [data],
+          };
+        }
+
+        /*
+         * JSON genérico
+         */
+        if (
+          data &&
+          typeof data === "object" &&
+          !Array.isArray(data)
+        ) {
+          return {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                geometry: null,
+                properties: data,
+              },
+            ],
+          };
+        }
+      } catch (error) {
+        console.warn(
+          "No se pudo interpretar la respuesta JSON:",
+          error
+        );
+      }
+    }
+
+    /*
+     * ============================================================
+     * HTML
+     * ============================================================
+     *
+     * Lo conservamos como contenido especial.
+     */
+
+    if (
+      contentType.includes("text/html") ||
+      text.trim().startsWith("<")
+    ) {
+      return {
+        type: "html",
+        html: sanitizeFeatureInfoHtml(text),
+      };
+    }
+
+    /*
+     * ============================================================
+     * TEXTO
+     * ============================================================
+     */
+
+    if (text.trim()) {
+      return {
+        type: "text",
+        text: text.trim(),
+      };
+    }
+
+    return null;
+  };
+
+  const sanitizeFeatureInfoHtml = (html) => {
+
+    const parser = new DOMParser();
+
+    const doc = parser.parseFromString(
+      html,
+      "text/html"
+    );
+
+    // Eliminar elementos potencialmente peligrosos
+    doc.querySelectorAll(
+      "script, iframe, object, embed, form, style"
+    ).forEach((element) => {
+      element.remove();
+    });
+
+    // Eliminar atributos de eventos:
+    // onclick, onload, onerror, etc.
+    doc.querySelectorAll("*").forEach((element) => {
+
+      [...element.attributes].forEach((attribute) => {
+
+        if (
+          attribute.name.toLowerCase()
+            .startsWith("on")
+        ) {
+          element.removeAttribute(
+            attribute.name
+          );
+        }
+
+        if (
+          attribute.name.toLowerCase() ===
+          "href"
+        ) {
+
+          const value =
+            attribute.value
+              .trim()
+              .toLowerCase();
+
+          if (
+            value.startsWith("javascript:")
+          ) {
+            element.removeAttribute(
+              attribute.name
+            );
+          }
+        }
+      });
+    });
+
+    return `
+        <div style="
+            font-size:12px;
+            max-width:390px;
+            overflow-x:auto;
+        ">
+            ${doc.body.innerHTML}
+        </div>
+    `;
+  };
+
   return <>
     <div ref={mapRef} className="w-full h-full w-[500px] h-[500px]" >
 
-      <button
-        onClick={() => setCollapsed((v) => !v)}
-        className="absolute bottom-4 left-4 z-[1000] bg-white rounded-full shadow-xl p-2 hover:bg-slate-100 cursor:pointer">
-        <Layers />
-      </button>
+      <LayerControl
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        baseMaps={Object.values(baseMapsRef.current)}
+        activeBasemap={activeBasemap}
+        onBasemapChange={changeBasemap}
+        layers={layers}
+        onToggleLayer={toggleLayer}
+        onRemoveLayer={removeLayer}
+      />
 
-      <div
-        className={`
-          absolute
-          bottom-18
-          left-4
-          z-[1000]
-          bg-white
-          rounded-lg
-          shadow-lg
-          overflow-hidden
-          transition-all
-          duration-300
-          ${collapsed
-            ? "w-0 opacity-0"
-            : "w-64 opacity-100"
-          }
-        `}
-      >
+      <WMSFeatureInfo
+        open={featureInfoOpen}
+        results={featureInfo}
+        loading={featureInfoLoading}
+        error={featureInfoError}
+        onClose={() => {
+          setFeatureInfoOpen(false);
+          setFeatureInfo([]);
+          setFeatureInfoError(null);
+          setFeatureInfoLoading(false);
+        }}
+      />
 
-        <div className="p-2 border-b bg-green-200/20">
-          <h3 className="font-semibold flex items-center gap-2">
-            <Layers size={16} /> Control de capas
-          </h3>
-        </div>
-
-        {/* BASEMAPS */}
-        <div className="p-3 border-b">
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            <Earth size={16} /> Mapas base
-          </h4>
-
-          <div className="space-y-1">
-            {Object.values(baseMapsRef.current).map((bm) => (
-
-              <button
-                key={bm.name}
-                onClick={() =>
-                  changeBasemap(bm.name)
-                }
-                className={`
-                  w-full
-                  text-left
-                  px-3
-                  py-1
-                  rounded
-                  transition
-                  ${activeBasemap === bm.name
-                    ? "bg-green-600 text-white"
-                    : "hover:bg-slate-100"
-                  }
-                `}
-              >
-                {bm.name}
-              </button>
-
-            ))}
-          </div>
-        </div>
-
-        {/* DATA LAYERS */}
-        <div className="p-3">
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            <Database size={16} /> Layers
-          </h4>
-
-          <div className="max-h-96 overflow-auto">
-            {layers.map((layer) => (
-              <div
-                key={layer.id}
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  p-1
-                  border-b
-                  border-dashed
-                  border-gray-300
-                  hover:bg-slate-50
-                ">
-                <span className="truncate">
-                  {layer.name}
-                </span>
-
-                <div className="flex gap-2 items-center">
-
-                  <label className="relative inline-flex cursor-pointer">
-
-                    <input
-                      type="checkbox"
-                      className="peer sr-only"
-                      checked={layer.visible}
-                      onChange={() =>
-                        toggleLayer(layer.id)
-                      }
-                    />
-
-                    <div
-                      className="
-                        relative
-                        w-8
-                        h-4
-                        rounded-full
-                        bg-slate-300
-                        transition-colors
-                        duration-300
-                        peer-checked:bg-blue-600
-
-                        after:content-['']
-                        after:absolute
-                        after:left-[2px]
-                        after:top-[2px]
-                        after:h-3
-                        after:w-3
-                        after:rounded-full
-                        after:bg-white
-                        after:transition-transform
-                        after:duration-300
-                        peer-checked:after:translate-x-4
-                      "
-                    />
-
-                  </label>
-
-                  <button
-                    onClick={() =>
-                      removeLayer(layer.id)
-                    }
-                    className="p-1 text-red-500 hover:bg-red-50 rounded cursor-pointer">
-                    <X size={16} />
-                  </button>
-
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-
-      </div>
     </div>
   </>;
 }
