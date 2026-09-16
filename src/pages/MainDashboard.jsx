@@ -7,15 +7,13 @@
 {/* -------------------------------------------------------- REACT */ }
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Map, Database, ChartNoAxesCombined } from 'lucide-react';
-import axios from "axios";
 
 {/* -------------------------------------------------------- DATA */ }
 import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
+import { wmsLayersConfig } from "../config/wmslayers.config";
 import { panesConfig } from "../config/panes.config";
 import { mainLayersConfig } from "../config/layers.config";
-
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
@@ -26,7 +24,6 @@ import {
     multiGroupBy,
     applyFilters,
     parseDate,
-    agruparParaStackedBar,
 } from "../components/CommonFunctions";                                                                                                                                                                                                                             
 
 import DoughnutChart from "../components/DoughnutChart";
@@ -40,7 +37,6 @@ export default function MainDashboard({
     filters = { filters },
     location = {},
     onStats = () => {},
-    onLoad = () => {},
 }) {
     const [rawData, setRawData] = useState(null);
     const [mobileTab, setMobileTab] = useState("map");
@@ -175,8 +171,8 @@ export default function MainDashboard({
         
                                 <GeoJSONVTMap
                                     baseMapsConfig={baseMapsConfig}
+                                    wmsLayersConfig={wmsLayersConfig}
                                     panesConfig={panesConfig}
-                                    location={location}
                                     data={{
                                         geojson: filteredData,
                                         name: "Clúster SATA",
@@ -343,15 +339,15 @@ export default function MainDashboard({
                     </div>
 
                     {/* Mobile View */}
-                    <div className=" h-full flex flex-col">
+                    <div className="h-full flex flex-col">
 
                         <div className="flex-1 overflow-hidden">
 
                             {mobileTab === "map" && (
                                 <GeoJSONVTMap
                                     baseMapsConfig={baseMapsConfig}
+                                    wmsLayersConfig={wmsLayersConfig}
                                     panesConfig={panesConfig}
-                                    location={location}
                                     data={{
                                         geojson: filteredData,
                                         name: "Clúster SATA",
@@ -382,7 +378,7 @@ export default function MainDashboard({
                             )}
 
                             {mobileTab === "charts" && (
-                                <div className="grid grid-cols-2 grid-rows-2 gap-2 m-4 h-full">
+                                <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
 
                                     <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                         <span
