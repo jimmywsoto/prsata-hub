@@ -27,6 +27,8 @@ proj4.defs(
   "+proj=utm +zone=17 +south +datum=WGS84 +units=m +no_defs"
 );
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 {/* -------------------------------------------------------- COMPONENTS */ }
 import { codMes, formatValue, parseDate } from "./CommonFunctions";
 import LayerControl from "./LayerControl";
@@ -524,6 +526,7 @@ export default function GeoJSONVTMap({
       pane = "lowestPane",
       attribution = "",
       visible = true,
+      proxy = true,
 
       // ========================================================
       // GetFeatureInfo
@@ -533,8 +536,6 @@ export default function GeoJSONVTMap({
       crs = "EPSG:3857",
       featureCount = 20
 
-
-
     } = config;
 
     if (!url || !layers) {
@@ -542,23 +543,90 @@ export default function GeoJSONVTMap({
       return;
     }
 
-    const safePane = map.getPane(pane)
-      ? pane
-      : "lowestPane";
+    const safePane = map.getPane(pane) ? pane : "lowestPane";
 
-    const layer = L.tileLayer.wms(url, {
-      layers,
-      format,
-      transparent,
-      version,
-      opacity,
-      pane: safePane,
-      attribution
-    });
+     /*
+     * ============================================================
+     * PROXY
+     * ============================================================
+     */
+
+    let layerUrl = url;
+    const proxyUrl = `${API_URL}/api/wms/proxy`;
+
+    if (proxy) {
+
+        /*
+         * Leaflet agregará posteriormente:
+         *
+         * SERVICE=WMS
+         * REQUEST=GetMap
+         * LAYERS=...
+         * BBOX=...
+         * WIDTH=...
+         * HEIGHT=...
+         *
+         * El parámetro target identifica al
+         * servidor WMS real.
+         */
+
+        layerUrl = proxyUrl;
+    }
+
+    /*
+     * ============================================================
+     * OPCIONES LEAFLET
+     * ============================================================
+     */
+
+    const wmsOptions = {
+
+        layers,
+
+        format,
+
+        transparent,
+
+        version,
+
+        opacity,
+
+        pane: safePane,
+
+        attribution
+    };
+
+    /*
+     * ============================================================
+     * TARGET DEL WMS
+     * ============================================================
+     */
+
+    if (proxy) {
+      wmsOptions.target = url;
+    }
+
+    /*
+     * ============================================================
+     * CREAR CAPA
+     * ============================================================
+    */
+
+    const layer =
+      L.tileLayer.wms(
+        layerUrl,
+        wmsOptions
+      );
 
     if (visible) {
       layer.addTo(map);
     }
+
+    /*
+     * ============================================================
+     * REGISTRAR CAPA
+     * ============================================================
+     */
 
     layersRef.current[id] = {
       id,
@@ -575,6 +643,12 @@ export default function GeoJSONVTMap({
       featureCount,
       config
     };
+
+    /*
+     * ============================================================
+     * ACTUALIZAR LAYERS
+     * ============================================================
+     */
 
     setLayers(prev => [
       ...prev,
@@ -831,8 +905,8 @@ export default function GeoJSONVTMap({
       INFO_FORMAT: infoFormat,
 
       BBOX: bbox,
-      WIDTH: Math.round(size.x),
-      HEIGHT: Math.round(size.y),
+      WIDTH: String(Math.round(size.x)),
+      HEIGHT: String(Math.round(size.y)),
 
       FEATURE_COUNT: String(
         layerConfig.featureCount || 20
@@ -880,6 +954,34 @@ export default function GeoJSONVTMap({
       );
     }
 
+      /*
+     * ============================================================
+     * PROXY
+     * ============================================================
+     */
+
+    if (
+        layerConfig.proxy !== false
+    ) {
+
+        const proxyUrl =
+            `${API_URL}/api/wms/proxy`;
+
+        params.set(
+            "target",
+            layerConfig.url
+        );
+
+        return `${proxyUrl}?${params.toString()}`;
+    }
+
+
+    /*
+     * ============================================================
+     * SIN PROXY
+     * ============================================================
+     */
+
     return `${layerConfig.url}?${params.toString()}`;
   };
 
@@ -908,12 +1010,6 @@ export default function GeoJSONVTMap({
 
       return map.hasLayer(item.layer);
     });
-
-    const queryableLayersParcialNOfuncionaBien = Object.values(layersRef.current).filter(
-        (item) =>
-            item.type === "wms" &&
-            item.queryable
-    );
 
     /*
      * No existen capas consultables
