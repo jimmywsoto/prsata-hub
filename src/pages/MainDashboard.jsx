@@ -208,7 +208,7 @@ export default function MainDashboard({
                                 {/* Fila 1 - BarChart */}
                                 <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                     <span
-                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
                                     >
                                         Recuento de Alertas SATA (Por Provincia)
                                     </span>
@@ -249,7 +249,7 @@ export default function MainDashboard({
                                 <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                     
                                     <span
-                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
                                     >
                                         Estadísticas por Severidad
                                     </span>
@@ -291,7 +291,7 @@ export default function MainDashboard({
                                 <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                     
                                     <span
-                                        className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg truncate"
+                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
                                     >
                                         Estadísticas por Periodo
                                     </span>
@@ -382,7 +382,7 @@ export default function MainDashboard({
 
                                     <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                         <span
-                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
                                         >
                                             Recuento de Alertas SATA (Por Provincia)
                                         </span>
@@ -423,7 +423,7 @@ export default function MainDashboard({
                                     <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
 
                                         <span
-                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
                                         >
                                             Estadísticas por Severidad
                                         </span>
@@ -464,7 +464,7 @@ export default function MainDashboard({
                                     <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
 
                                         <span
-                                            className="bg-[var(--color-emphasis)] w-full p-2 text-center font-bold text-lg"
+                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
                                         >
                                             Estadísticas por Periodo
                                         </span>
@@ -520,7 +520,7 @@ export default function MainDashboard({
                                         cursor-pointer transition-all duration-300
 
                                         ${mobileTab === "map"
-                                        ? "bg-green-500 text-white shadow-md"
+                                        ? "bg-green-700/80 text-white shadow-md"
                                         : "bg-gray-200 hover:bg-green-300/30"
                                     }
                                     `}
@@ -553,7 +553,7 @@ export default function MainDashboard({
                                         cursor-pointer transition-all duration-300
 
                                         ${mobileTab === "cards"
-                                        ? "bg-green-500 text-white shadow-md"
+                                        ? "bg-green-700/80 text-white shadow-md"
                                         : "bg-gray-200  hover:bg-green-300/30"
                                     }
                                     `}
@@ -586,7 +586,7 @@ export default function MainDashboard({
                                         cursor-pointer transition-all duration-300
 
                                         ${mobileTab === "charts"
-                                        ? "bg-green-500 text-white shadow-md"
+                                        ? "bg-green-700/80 text-white shadow-md"
                                         : "bg-gray-200 hover:bg-green-300/30"
                                     }
                                     `}
