@@ -37,14 +37,14 @@ export function MapControlOverlay({
             ref={containerRef}
             className="shadow-md"
         >
-            <div className="p-2 border-b bg-green-200/20">
+            <div className="p-2 border-b bg-green-700/80 text-white">
                 <h3 className="font-semibold flex items-center gap-2">
                     <Earth size={16} /> Planet Mosaics
                 </h3>
             </div>
 
             {/* PLANET CONTROL */}
-            <div className="p-2 border-b">
+            <div className="p-2 border-b border-green-600/20">
                 
                 <div className="space-y-1">
                     <div className="flex gap-3 items-center">
@@ -71,7 +71,7 @@ export function MapControlOverlay({
             {/* OPACITY CONTROL */}
             <div className="p-3">
 
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                <h4 className="font-semibold mb-2 flex items-center gap-2 text-green-700/80">
                     <Blend size={16} /> Control de opacidad
                 </h4>
 
