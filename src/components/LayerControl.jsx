@@ -19,6 +19,7 @@ export default function LayerControl({
     layers = [],
     onToggleLayer,
     onRemoveLayer,
+    position= "map"
 }) {
     const panelRef = useRef(null);
     const buttonRef = useRef(null);
@@ -56,22 +57,15 @@ export default function LayerControl({
 
     return (
         <>
-            {/* ============================================================ PRINCIPAL BUTTON */}
-            <button
-                ref={buttonRef}
-                type="button"
-                onClick={() => setCollapsed((value) => !value)}
-                className=" absolute bottom-4 left-4 z-[1000] bg-white text-green-700/80 rounded-full shadow-xl p-2 hover:bg-slate-100 cursor-pointer transition "
-                title="Control de capas"
-            >
-                <Layers size={20} />
-            </button>
-
             {/* ============================================================ PANEL */}
             <div
                 ref={panelRef}
                 className={`
-                    absolute bottom-18 left-4 z-[1000] bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 
+                     ${position === "static"
+                        ? "relative"
+                        : "absolute bottom-4 left-4"
+                    } 
+                    z-[1000] bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 
                     ${collapsed
                         ? "w-0 opacity-0 pointer-events-none"
                         : "w-64 opacity-100"
@@ -123,7 +117,6 @@ export default function LayerControl({
                             </div>
                         )}
 
-
                     </section>
                 )}
 
@@ -158,6 +151,23 @@ export default function LayerControl({
                 )}
 
             </div>
+
+            {/* ============================================================ PRINCIPAL BUTTON */}
+            {/*<button
+                ref={buttonRef}
+                type="button"
+                onClick={() => setCollapsed((value) => !value)}
+                className={`
+                     ${
+                    position === "static"
+                        ? "relative"
+                        : "absolute bottom-4 left-4"
+                    }  
+                    z-[1000] bg-white text-green-700/80 rounded-full shadow-xl p-2 hover:bg-slate-100 cursor-pointer transition `}
+                title="Control de capas"
+            >
+                <Layers size={20} />
+            </button>*/}
         </>);
 }
 
