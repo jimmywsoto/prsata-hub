@@ -12,6 +12,7 @@ import geojsonvt from "geojson-vt";
 import proj4 from "proj4";
 import leafletImage from 'leaflet-image';
 import { toPng } from 'html-to-image';
+import { Layers } from 'lucide-react';
 
 {/* -------------------------------------------------------- DATA */ }
 import "leaflet/dist/leaflet.css";
@@ -1062,6 +1063,13 @@ export default function GeoJSONVTMap({
             e.latlng
           );
 
+            /*console.log(
+            "[WMS GetFeatureInfo]",
+            {
+              url
+            }
+          );*/
+
           try {
             const response = await fetch(url, {
               method: "GET",
@@ -1421,16 +1429,56 @@ export default function GeoJSONVTMap({
   return <>
     <div ref={mapRef} className="w-full h-full w-[500px] h-[500px]" >
 
-      <LayerControl
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-        baseMaps={Object.values(baseMapsRef.current)}
-        activeBasemap={activeBasemap}
-        onBasemapChange={changeBasemap}
-        layers={layers}
-        onToggleLayer={toggleLayer}
-        onRemoveLayer={removeLayer}
-      />
+      <div className=" absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2">
+
+        {/* ==================================================
+        PANELES
+        ================================================== */}
+
+        <div className="flex flex-col items-start gap-2">
+
+          <LayerControl
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            baseMaps={Object.values(baseMapsRef.current)}
+            activeBasemap={activeBasemap}
+            onBasemapChange={changeBasemap}
+            layers={layers}
+            onToggleLayer={toggleLayer}
+            onRemoveLayer={removeLayer}
+            position="static"
+          />
+
+        </div>
+
+        {/* ==================================================
+        BLOQUE DE BOTONES
+        ================================================== */}
+        <div className="flex flex-row items-center gap-2">
+
+          {/* ----------------------------------------------
+          BOTÓN CONTROL LAYERS
+          ---------------------------------------------- */}
+          <button
+            type="button"
+            onClick={() =>
+              setCollapsed(
+                (value) => !value
+              )
+            }
+            className="flex items-center justify-center rounded-full bg-white  p-2 text-green-700/80 shadow-xl transition  hover:bg-slate-100 cursor-pointer"
+            title={
+              collapsed
+                ? "Mostrar capas"
+                : "Ocultar capas"
+            }
+          >
+            <Layers size={20} />
+          </button>
+
+        </div>
+
+      </div>
 
       <WMSFeatureInfo
         open={featureInfoOpen}
