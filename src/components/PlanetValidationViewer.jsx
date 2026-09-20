@@ -23,7 +23,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 /* -------------------------------------------------------- ICONS */
-import { Satellite, Layers } from "lucide-react";
+import { Satellite, Layers, Settings2 } from "lucide-react";
 
 /* -------------------------------------------------------- DATA */
 import { baseMapsConfig } from "../config/basemaps.config";
@@ -385,6 +385,7 @@ export default function PlanetValidationViewer() {
 
     const { showToast } = useToast();
     const featureInfoAbortControllerRef = useRef(null);
+    const buttonRef = useRef(null);
 
     {/* -------------------------------------------------------- STATES */ }
     const [loading, setLoading] = useState(false);
@@ -394,6 +395,7 @@ export default function PlanetValidationViewer() {
     const [features, setFeatures] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [layerVersion, setLayerVersion] = useState(0);
+    const [showPanel, setShowPanel] = useState(false);
 
     {/* -------------------------------------------------------- BASEMAP */ }
     let defaultBasemap = [];
@@ -597,6 +599,15 @@ export default function PlanetValidationViewer() {
     {/* -------------------------------------------------------- INIT EFFECT */ }
     useEffect(() => {
 
+        const button = buttonRef.current;
+
+        console.log(button)
+
+        if (button) {
+            console.log('Existe el boton')
+            L.DomEvent.disableClickPropagation(button);
+        }
+
         fetchMosaics();
         return () => {
             if (
@@ -759,19 +770,21 @@ export default function PlanetValidationViewer() {
                 {/* ==================================================
                    SIDEBAR
                 ================================================== */}
-                <div className="w-[350px] overflow-auto shadow rounded-lg">
-                    <FeaturesPanel
-                        setGeojson={setGeojson}
-                        layerVersion={layerVersion}
-                        setLayerVersion={setLayerVersion}
-                        selectedIndex={selectedIndex}
-                        setSelectedIndex={setSelectedIndex}
-                        selectedFeature={selectedFeature}
-                        features={features}
-                        setFeatures={setFeatures}
-                    />
-                </div>
-
+                {showPanel && (
+                    <div className="w-[350px] overflow-auto shadow rounded-lg">
+                        <FeaturesPanel
+                            setGeojson={setGeojson}
+                            layerVersion={layerVersion}
+                            setLayerVersion={setLayerVersion}
+                            selectedIndex={selectedIndex}
+                            setSelectedIndex={setSelectedIndex}
+                            selectedFeature={selectedFeature}
+                            features={features}
+                            setFeatures={setFeatures}
+                        />
+                    </div>
+                )}
+                
                 {/* ==================================================
                    MAP
                 ================================================== */}
@@ -906,7 +919,7 @@ export default function PlanetValidationViewer() {
                                 {/* ----------------------------------------------
                                 CONTROL PLANET
                                 ---------------------------------------------- */}
-                                {!wmsInfoOpen && !planetControlCollapsed && (
+                                {!planetControlCollapsed && (
 
                                     <div className="w-64 overflow-hidden rounded-lg bg-white shadow-lg">
                                         <MapControlOverlay
@@ -966,26 +979,43 @@ export default function PlanetValidationViewer() {
                                 {/* ----------------------------------------------
                                 BOTÓN CONTROL PLANET
                                 ---------------------------------------------- */}
-                                {!wmsInfoOpen && (
+                                <button
+                                    ref={buttonRef}
+                                    type="button"
+                                    onClick={() =>
+                                        setPlanetControlCollapsed(
+                                            (value) => !value
+                                        )
+                                    }
+                                    className="flex items-center justify-center rounded-full bg-white p-2 text-green-700/80 shadow-xl transition hover:bg-slate-100 cursor-pointer "
+                                    title={
+                                        planetControlCollapsed
+                                            ? "Mostrar control Planet"
+                                            : "Ocultar control Planet"
+                                    }
+                                >
+                                    <Satellite size={20} />
+                                </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setPlanetControlCollapsed(
-                                                (value) => !value
-                                            )
-                                        }
-                                        className="flex items-center justify-center rounded-full bg-white p-2 text-green-700/80 shadow-xl transition hover:bg-slate-100 cursor-pointer "
-                                        title={
-                                            planetControlCollapsed
-                                                ? "Mostrar control Planet"
-                                                : "Ocultar control Planet"
-                                        }
-                                    >
-                                        <Satellite size={20} />
-                                    </button>
-
-                                )}
+                                {/* ----------------------------------------------
+                                BOTÓN FEATURE PANEL
+                                ---------------------------------------------- */}
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowPanel(
+                                            (value) => !value
+                                        )
+                                    }
+                                    className="flex items-center justify-center rounded-full bg-white p-2 text-green-700/80 shadow-xl transition hover:bg-slate-100 cursor-pointer "
+                                    title={
+                                        showPanel
+                                            ? "Mostrar Features Panel"
+                                            : "Ocultar Features Panel"
+                                    }
+                                >
+                                    <Settings2 size={20} />
+                                </button>
 
                             </div>
 
