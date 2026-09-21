@@ -11,7 +11,7 @@ import { Map, Database, ChartNoAxesCombined } from 'lucide-react';
 {/* -------------------------------------------------------- DATA */ }
 import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
-import { wmsLayersConfig } from "../config/wmslayers.config";
+import { wmsLayersConfig } from "../config/wmsLayers.config";
 import { panesConfig } from "../config/panes.config";
 import { mainLayersConfig } from "../config/layers.config";
 
