@@ -23,7 +23,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 /* -------------------------------------------------------- ICONS */
-import { Satellite, Layers, Settings2 } from "lucide-react";
+import { Satellite, Layers, Settings2, X } from "lucide-react";
 
 /* -------------------------------------------------------- DATA */
 import { baseMapsConfig } from "../config/basemaps.config";
@@ -765,30 +765,112 @@ export default function PlanetValidationViewer() {
             {/* ------------------------------------------------
                CONTENT
             ------------------------------------------------ */}
-            <div className="z-20 flex-1 flex overflow-hidden p-4 gap-4">
+            <div className="relative z-20 flex-1 flex overflow-hidden md:p-4">
 
                 {/* ==================================================
                    SIDEBAR
                 ================================================== */}
-                {showPanel && (
-                    <div className="w-[350px] overflow-auto shadow rounded-lg">
-                        <FeaturesPanel
-                            setGeojson={setGeojson}
-                            layerVersion={layerVersion}
-                            setLayerVersion={setLayerVersion}
-                            selectedIndex={selectedIndex}
-                            setSelectedIndex={setSelectedIndex}
-                            selectedFeature={selectedFeature}
-                            features={features}
-                            setFeatures={setFeatures}
-                        />
+
+                {/* ==================================================
+                SIDEBAR CONTAINER
+                ================================================== */}
+                <div
+                    className={`
+                    relative
+                    flex-shrink-0
+                    transition-[width]
+                    duration-300
+                    ease-in-out
+
+                    ${showPanel
+                            ? "md:w-72"
+                            : "md:w-0"
+                        }
+                    `}
+                >
+
+                    {/* ==================================================
+                        SIDEBAR PANEL
+                    ================================================== */}
+                    <div
+                        className={`
+                            absolute
+                            top-0
+                            left-0
+                            z-[9999]
+
+                            w-screen
+                            h-full
+
+                            
+                            rounded-none
+                            overflow-hidden
+
+                            transform
+                            transition-transform
+                            duration-300
+                            ease-in-out
+
+                            ${showPanel
+                                ? "translate-x-0"
+                                : "-translate-x-full"
+                            }
+
+                            md:w-72
+                            md:rounded-lg
+                        `}
+                    >
+
+                        {/* ==================================================
+                        HEADER MOBILE
+                        ================================================== */}
+                        <div className="flex items-center justify-between bg-white px-4 py-3 border-b md:hidden">
+
+                            <span className="font-semibold text-slate-700">
+                                Features
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPanel(false)}
+                                className="
+                                    flex items-center justify-center
+                                    rounded-full
+                                    p-2
+                                    text-slate-600
+                                    hover:bg-slate-100
+                                    transition
+                                    cursor-pointer
+                                "
+                                title="Cerrar panel"
+                            >
+                                <X size={20} />
+                            </button>
+
+                        </div>
+
+                        <div className="h-full overflow-auto bg-white md:bg-transparent">
+                            <FeaturesPanel
+                                setGeojson={setGeojson}
+                                layerVersion={layerVersion}
+                                setLayerVersion={setLayerVersion}
+                                selectedIndex={selectedIndex}
+                                setSelectedIndex={setSelectedIndex}
+                                selectedFeature={selectedFeature}
+                                features={features}
+                                setFeatures={setFeatures}
+                            />
+
+                        </div>
+
                     </div>
-                )}
-                
+
+                </div>
+
                 {/* ==================================================
                    MAP
                 ================================================== */}
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
 
                     {loading && (
                         <Loader />
@@ -800,10 +882,10 @@ export default function PlanetValidationViewer() {
                         maxZoom={18}
                         className="w-full h-full rounded-lg"
                     >
-                        <Pane name="lowestPane" style={{ zIndex: 200 }}/>
-                        <Pane name="planetPane" style={{ zIndex: 300 }}/>
-                        <Pane name="wmsPane" style={{ zIndex: 400 }}/>
-                        <Pane name="highestPane" style={{ zIndex: 800 }}/>
+                        <Pane name="lowestPane" style={{ zIndex: 200 }} />
+                        <Pane name="planetPane" style={{ zIndex: 300 }} />
+                        <Pane name="wmsPane" style={{ zIndex: 400 }} />
+                        <Pane name="highestPane" style={{ zIndex: 800 }} />
 
                         {/* ==================================================
                            BASEMAP
