@@ -84,69 +84,123 @@ function WMSMapClickHandler({
 
         click: async (event) => {
 
-            const queryableLayers = layers.filter(
-                (layer) =>
-                    layer.type === "wms" &&
-                    layer.visible &&
-                    layer.queryable
-            );
+            /*
+             * ========================================================
+             * CAPAS WMS CONSULTABLES
+             * ========================================================
+             */
+
+            const queryableLayers =
+                layers.filter(
+                    (layer) =>
+                        layer.type === "wms" &&
+                        layer.visible &&
+                        layer.queryable
+                );
+
 
             /*
-                Si no existen capas WMS consultables visibles,
-                no ejecutamos GetFeatureInfo.
-            */
-            if (queryableLayers.length === 0) {
+             * ========================================================
+             * NO HAY CAPAS CONSULTABLES
+             * ========================================================
+             */
+
+            if (
+                queryableLayers.length === 0
+            ) {
                 return;
             }
 
+
             /*
-                Cancelar consulta anterior
-            */
-            if (abortControllerRef.current) {
+             * ========================================================
+             * CANCELAR CONSULTA ANTERIOR
+             * ========================================================
+             */
+
+            if (
+                abortControllerRef.current
+            ) {
+
                 abortControllerRef.current.abort();
             }
 
-            const controller = new AbortController();
 
-            abortControllerRef.current = controller;
+            const controller =
+                new AbortController();
+
+            abortControllerRef.current =
+                controller;
+
+
+            /*
+             * ========================================================
+             * ESTADO UI
+             * ========================================================
+             */
 
             onLoading(true);
+
             onError(null);
+
             onResults([]);
+
             onOpen(true);
+
 
             try {
 
-                const bounds = map.getBounds();
+                /*
+                 * ====================================================
+                 * DATOS DEL MAPA
+                 * ====================================================
+                 */
 
-                const size = map.getSize();
+                const bounds =
+                    map.getBounds();
 
-                const point = map.latLngToContainerPoint(
-                    event.latlng
-                );
+                const size =
+                    map.getSize();
+
+                const point =
+                    map.latLngToContainerPoint(
+                        event.latlng
+                    );
+
+
+                const width =
+                    Math.round(size.x);
+
+                const height =
+                    Math.round(size.y);
+
 
                 /*
-                    Leaflet / WMS:
+                 * ====================================================
+                 * BBOX EPSG:3857
+                 * ====================================================
+                 */
 
-                    x = columna
-                    y = fila
+                const nw =
+                    map.containerPointToLatLng(
+                        L.point(0, 0)
+                    );
 
-                    Para EPSG:3857 no necesitamos invertir
-                    el orden de coordenadas del BBOX.
-                */
-                const width = Math.round(size.x);
-                const height = Math.round(size.y);
+                const se =
+                    map.containerPointToLatLng(
+                        L.point(
+                            width,
+                            height
+                        )
+                    );
 
-                const nw = map.containerPointToLatLng(
-                    L.point(0, 0)
-                );
 
-                const se = map.containerPointToLatLng(
-                    L.point(width, height)
-                );
+                const topLeft =
+                    L.CRS.EPSG3857.project(nw);
 
-                const topLeft = L.CRS.EPSG3857.project(nw);
-                const bottomRight = L.CRS.EPSG3857.project(se);
+                const bottomRight =
+                    L.CRS.EPSG3857.project(se);
+
 
                 const bbox = [
                     topLeft.x,
@@ -155,176 +209,444 @@ function WMSMapClickHandler({
                     topLeft.y
                 ].join(",");
 
-                const requests = queryableLayers.map(
-                    async (layer) => {
 
-                        /*
-                            Para WMS 1.3.0 + EPSG:3857:
+                /*
+                 * ====================================================
+                 * CONSULTAS EN PARALELO
+                 * ====================================================
+                 */
 
-                            CRS=EPSG:3857
-                            BBOX=xmin,ymin,xmax,ymax
-                            I=columna
-                            J=fila
-                        */
+                const requests =
+                    queryableLayers.map(
+                        async (layer) => {
 
-                        const params = new URLSearchParams({
+                            /*
+                             * ==================================================
+                             * PARÁMETROS GETFEATUREINFO
+                             * ==================================================
+                             */
 
-                            SERVICE: "WMS",
+                            const params =
+                                new URLSearchParams({
 
-                            VERSION:
-                                layer.version || "1.3.0",
+                                    SERVICE: "WMS",
 
-                            REQUEST: "GetFeatureInfo",
+                                    VERSION:
+                                        layer.version ||
+                                        "1.3.0",
 
-                            LAYERS: layer.layers,
+                                    REQUEST:
+                                        "GetFeatureInfo",
 
-                            QUERY_LAYERS: layer.layers,
+                                    LAYERS:
+                                        layer.layers,
 
-                            INFO_FORMAT:
-                                layer.infoFormat ||
-                                "application/json",
+                                    QUERY_LAYERS:
+                                        layer.layers,
 
-                            FEATURE_COUNT: String(
-                                layer.featureCount || 20
-                            ),
+                                    INFO_FORMAT:
+                                        layer.infoFormat ||
+                                        "application/json",
 
-                            CRS:
-                                layer.crs ||
-                                "EPSG:3857",
+                                    FEATURE_COUNT:
+                                        String(
+                                            layer.featureCount ||
+                                            20
+                                        ),
 
-                            BBOX: bbox,
+                                    CRS:
+                                        layer.crs ||
+                                        "EPSG:3857",
 
-                            WIDTH: String(width),
+                                    BBOX:
+                                        bbox,
 
-                            HEIGHT: String(height),
+                                    WIDTH:
+                                        String(width),
 
-                            I: String(
-                                Math.round(point.x)
-                            ),
+                                    HEIGHT:
+                                        String(height),
 
-                            J: String(
-                                Math.round(point.y)
-                            )
-                        });
+                                    I:
+                                        String(
+                                            Math.round(
+                                                point.x
+                                            )
+                                        ),
 
-                        /*
-                            Actualmente utilizamos directamente
-                            la URL definida en la configuración WMS.
+                                    J:
+                                        String(
+                                            Math.round(
+                                                point.y
+                                            )
+                                        )
+                                });
 
-                            Si posteriormente existe un endpoint
-                            backend para proxy, esta función será
-                            el único punto que deberá modificarse.
-                        */
-                        const url =
-                            `${layer.url}?${params.toString()}`;
 
-                        const response =
-                            await fetch(url, {
-                                signal:
-                                    controller.signal
-                            });
+                            /*
+                             * ==================================================
+                             * DETERMINAR URL
+                             * ==================================================
+                             */
+                            /*
+                                ============================================================
+                                WMS PROXY
+                                ============================================================
 
-                        if (!response.ok) {
+                                Las consultas WMS se realizan mediante el backend
+                                para evitar problemas CORS y restricciones de acceso
+                                desde el entorno de producción.
 
-                            throw new Error(
-                                `HTTP ${response.status} al consultar ${layer.name}`
+                                El parámetro "target" identifica el servidor WMS
+                                real de GeoServer.
+                            */
+
+                            let url;
+
+
+                            /*
+                             * --------------------------------------------------
+                             * CON PROXY
+                             * --------------------------------------------------
+                             */
+
+                            if (
+                                layer.proxy !== false
+                            ) {
+
+                                const proxyUrl =
+                                    `${API_URL}/api/wms/proxy`;
+
+                                params.set(
+                                    "target",
+                                    layer.url
+                                );
+
+                                url =
+                                    `${proxyUrl}?${params.toString()}`;
+
+                            }
+
+
+                            /*
+                             * --------------------------------------------------
+                             * SIN PROXY
+                             * --------------------------------------------------
+                             */
+
+                            else {
+
+                                url =
+                                    `${layer.url}?${params.toString()}`;
+                            }
+
+
+                            /*
+                             * ==================================================
+                             * DEBUG OPCIONAL
+                             * ==================================================
+                             */
+
+                            console.debug(
+                                "[WMS GetFeatureInfo]",
+                                {
+                                    layer:
+                                        layer.name,
+
+                                    proxy:
+                                        layer.proxy !== false,
+
+                                    url
+                                }
                             );
-                        }
 
-                        const contentType =
-                            response.headers.get(
-                                "content-type"
-                            ) || "";
 
-                        let data;
+                            /*
+                             * ==================================================
+                             * FETCH
+                             * ==================================================
+                             */
 
-                        if (
-                            contentType.includes(
-                                "application/json"
-                            )
-                        ) {
+                            const response =
+                                await fetch(
+                                    url,
+                                    {
+                                        method: "GET",
 
-                            data =
-                                await response.json();
+                                        signal:
+                                            controller.signal,
 
-                        } else {
+                                        headers: {
+                                            Accept:
+                                                layer.infoFormat ===
+                                                "text/html"
+
+                                                    ? "text/html,application/json"
+
+                                                    : "application/json,text/plain,text/html"
+                                        }
+                                    }
+                                );
+
+
+                            /*
+                             * ==================================================
+                             * HTTP ERROR
+                             * ==================================================
+                             */
+
+                            if (
+                                !response.ok
+                            ) {
+
+                                throw new Error(
+                                    `HTTP ${response.status} al consultar ${layer.name}`
+                                );
+                            }
+
+
+                            /*
+                             * ==================================================
+                             * CONTENT TYPE
+                             * ==================================================
+                             */
+
+                            const contentType =
+                                response.headers.get(
+                                    "content-type"
+                                ) || "";
+
 
                             const text =
                                 await response.text();
 
-                            try {
 
-                                data =
-                                    JSON.parse(text);
+                            /*
+                             * ==================================================
+                             * PARSEAR RESPUESTA
+                             * ==================================================
+                             */
 
-                            } catch {
+                            let data = null;
 
-                                throw new Error(
-                                    `La respuesta de ${layer.name} no es JSON válido.`
-                                );
-                            }
-                        }
 
-                        return {
+                            /*
+                             * JSON
+                             */
 
-                            layerId: layer.id,
-
-                            layerName: layer.name,
-
-                            features:
-                                Array.isArray(
-                                    data?.features
+                            if (
+                                contentType.includes(
+                                    "application/json"
+                                ) ||
+                                contentType.includes(
+                                    "geo+json"
+                                ) ||
+                                contentType.includes(
+                                    "json"
                                 )
-                                    ? data.features
-                                    : []
-                        };
-                    }
-                );
+                            ) {
+
+                                try {
+
+                                    data =
+                                        JSON.parse(
+                                            text
+                                        );
+
+                                } catch (
+                                    parseError
+                                ) {
+
+                                    console.error(
+                                        "Error parseando JSON WMS:",
+                                        parseError
+                                    );
+
+                                    throw new Error(
+                                        `La respuesta de ${layer.name} no es JSON válido.`
+                                    );
+                                }
+                            }
+
+
+                            /*
+                             * ==================================================
+                             * RESPUESTA NO JSON
+                             * ==================================================
+                             */
+
+                            else {
+
+                                try {
+
+                                    data =
+                                        JSON.parse(
+                                            text
+                                        );
+
+                                } catch {
+
+                                    /*
+                                     * Si GeoServer devuelve HTML
+                                     * lo conservamos para el componente.
+                                     */
+
+                                    return {
+
+                                        layerId:
+                                            layer.id,
+
+                                        layerName:
+                                            layer.name,
+
+                                        type:
+                                            contentType.includes(
+                                                "text/html"
+                                            )
+                                                ? "html"
+                                                : "text",
+
+                                        html:
+                                            contentType.includes(
+                                                "text/html"
+                                            )
+                                                ? text
+                                                : undefined,
+
+                                        text:
+                                            contentType.includes(
+                                                "text/html"
+                                            )
+                                                ? undefined
+                                                : text,
+
+                                        features: []
+                                    };
+                                }
+                            }
+
+
+                            /*
+                             * ==================================================
+                             * GEOJSON
+                             * ==================================================
+                             */
+
+                            return {
+
+                                layerId:
+                                    layer.id,
+
+                                layerName:
+                                    layer.name,
+
+                                type:
+                                    "features",
+
+                                features:
+                                    Array.isArray(
+                                        data?.features
+                                    )
+                                        ? data.features
+                                        : []
+                            };
+                        }
+                    );
+
+
+                /*
+                 * ========================================================
+                 * ESPERAR TODAS
+                 * ========================================================
+                 */
 
                 const settled =
                     await Promise.allSettled(
                         requests
                     );
 
-                if (controller.signal.aborted) {
+
+                /*
+                 * ========================================================
+                 * CANCELACIÓN
+                 * ========================================================
+                 */
+
+                if (
+                    controller.signal.aborted
+                ) {
                     return;
                 }
 
-                const successfulResults = [];
 
-                const errors = [];
+                const successfulResults =
+                    [];
 
-                settled.forEach((result) => {
+                const errors =
+                    [];
 
-                    if (
-                        result.status ===
-                        "fulfilled"
-                    ) {
-
-                        successfulResults.push(
-                            result.value
-                        );
-
-                    } else {
-
-                        errors.push(
-                            result.reason
-                        );
-                    }
-                });
 
                 /*
-                    Mostramos resultados incluso cuando
-                    alguna capa individual falla.
-                */
+                 * ========================================================
+                 * PROCESAR RESULTADOS
+                 * ========================================================
+                 */
+
+                settled.forEach(
+                    (result) => {
+
+                        if (
+                            result.status ===
+                            "fulfilled"
+                        ) {
+
+                            /*
+                             * No mostramos resultados
+                             * GeoJSON vacíos.
+                             */
+
+                            if (
+                                result.value.type ===
+                                    "features" &&
+                                result.value.features
+                                    ?.length === 0
+                            ) {
+
+                                return;
+                            }
+
+
+                            successfulResults.push(
+                                result.value
+                            );
+
+                        } else {
+
+                            errors.push(
+                                result.reason
+                            );
+                        }
+                    }
+                );
+
+
+                /*
+                 * ========================================================
+                 * ACTUALIZAR RESULTADOS
+                 * ========================================================
+                 */
+
                 onResults(
                     successfulResults
                 );
 
+
                 /*
-                    Si todas las consultas fallaron,
-                    mostramos error.
-                */
+                 * ========================================================
+                 * TODAS LAS CONSULTAS FALLARON
+                 * ========================================================
+                 */
+
                 if (
                     successfulResults.length === 0 &&
                     errors.length > 0
@@ -339,10 +661,19 @@ function WMSMapClickHandler({
                             )
                             .join(" | ");
 
-                    onError(message);
+
+                    onError(
+                        message
+                    );
                 }
 
             } catch (error) {
+
+                /*
+                 * ========================================================
+                 * ABORT
+                 * ========================================================
+                 */
 
                 if (
                     error?.name ===
@@ -351,10 +682,12 @@ function WMSMapClickHandler({
                     return;
                 }
 
+
                 console.error(
                     "Error GetFeatureInfo:",
                     error
                 );
+
 
                 onError(
                     error?.message ||
@@ -377,6 +710,7 @@ function WMSMapClickHandler({
         }
     });
 
+
     return null;
 }
 
@@ -385,7 +719,6 @@ export default function PlanetValidationViewer() {
 
     const { showToast } = useToast();
     const featureInfoAbortControllerRef = useRef(null);
-    const buttonRef = useRef(null);
 
     {/* -------------------------------------------------------- STATES */ }
     const [loading, setLoading] = useState(false);
@@ -598,16 +931,6 @@ export default function PlanetValidationViewer() {
 
     {/* -------------------------------------------------------- INIT EFFECT */ }
     useEffect(() => {
-
-        const button = buttonRef.current;
-
-        console.log(button)
-
-        if (button) {
-            console.log('Existe el boton')
-            L.DomEvent.disableClickPropagation(button);
-        }
-
         fetchMosaics();
         return () => {
             if (
@@ -751,6 +1074,21 @@ export default function PlanetValidationViewer() {
         setWmsResults([]);
     };
 
+    const controlsRef = (element) => {
+
+        if (!element) {
+            return;
+        }
+
+        L.DomEvent.disableClickPropagation(
+            element
+        );
+
+        L.DomEvent.disableScrollPropagation(
+            element
+        );
+    };
+
     {/* -------------------------------------------------------- RENDER */ }
     return (
 
@@ -824,10 +1162,10 @@ export default function PlanetValidationViewer() {
                         {/* ==================================================
                         HEADER MOBILE
                         ================================================== */}
-                        <div className="flex items-center justify-between bg-white px-4 py-3 border-b md:hidden">
+                        <div className="flex items-center justify-between bg-[var(--color-bg-pattern)] px-4 py-3 border-b md:hidden">
 
-                            <span className="font-semibold text-slate-700">
-                                Features
+                            <span className="font-semibold text-green-700/80">
+                                Features Info
                             </span>
 
                             <button
@@ -849,7 +1187,7 @@ export default function PlanetValidationViewer() {
 
                         </div>
 
-                        <div className="h-full overflow-auto bg-white md:bg-transparent">
+                        <div className="h-full overflow-auto bg-[var(--color-bg-pattern)] md:bg-transparent">
                             <FeaturesPanel
                                 setGeojson={setGeojson}
                                 layerVersion={layerVersion}
@@ -947,22 +1285,54 @@ export default function PlanetValidationViewer() {
                            WMS LAYERS
                         ================================================== */}
                         {wmsLayers.filter((layer) => layer.visible).map(
-                            (layer) => (
+                            (layer) => {
+                                
+                                const useProxy =
+                                    layer.proxy !== false;
+
+                                const wmsUrl =
+                                    useProxy
+                                        ? `${API_URL}/api/wms/proxy`
+                                        : layer.url;
+
+                                return (
 
                                 <WMSTileLayer
                                     key={layer.id}
-                                    url={layer.url}
+                                    url={wmsUrl}
                                     layers={layer.layers}
                                     format={layer.format || "image/png"}
                                     transparent={layer.transparent !== false}
                                     version={layer.version || "1.3.0"}
+                                    /*
+                                    * --------------------------------------------------
+                                    * PROXY TARGET
+                                    * --------------------------------------------------
+                                    *
+                                    * Leaflet incorporará este parámetro
+                                    * en las solicitudes WMS.
+                                    *
+                                    * Nuestro Express lo recibe como:
+                                    *
+                                    * req.query.target
+                                    *
+                                    */
+                                    {...(
+                                        useProxy
+                                            ? {
+                                                target:
+                                                    layer.url
+                                            }
+                                            : {}
+                                    )}
+
                                     opacity={layer.opacity ?? 1}
                                     zIndex={layer.zIndex}
                                     attribution={layer.attribution}
                                     pane="wmsPane"
                                 />
 
-                            )
+                            )}
                         )}
 
                         {/* ==================================================
@@ -991,7 +1361,10 @@ export default function PlanetValidationViewer() {
                         {/* ==================================================
                         MAP CONTROLS
                         ================================================== */}
-                        <div className=" absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2">
+                        <div 
+                            ref={controlsRef}
+                            className=" absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2"
+                        >
 
                             {/* ==================================================
                             PANELES
@@ -1036,7 +1409,9 @@ export default function PlanetValidationViewer() {
                             {/* ==================================================
                                 BLOQUE DE BOTONES
                             ================================================== */}
-                            <div className="flex flex-row items-center gap-2">
+                            <div 
+                                className="flex flex-row items-center gap-2"
+                            >
 
                                 {/* ----------------------------------------------
                                 BOTÓN CONTROL LAYERS
@@ -1062,7 +1437,6 @@ export default function PlanetValidationViewer() {
                                 BOTÓN CONTROL PLANET
                                 ---------------------------------------------- */}
                                 <button
-                                    ref={buttonRef}
                                     type="button"
                                     onClick={() =>
                                         setPlanetControlCollapsed(
