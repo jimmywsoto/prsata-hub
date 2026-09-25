@@ -52,7 +52,7 @@ function App() {
     const [layers, setLayers] = useState([]);
 
     const [filters, setFilters] = useState({
-        anio: [], // Cambiar todos a [] para habilitar selección multiple
+        anio: [2026], // Cambiar todos a [] para habilitar selección multiple
         mes: [],
         provincia: [],
         delimitacion: [],
