@@ -1,39 +1,35 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    VERSIÓN: 2.0.0
+    UPDATED AT: Septembrer, 2026
+    VERSIÓN: 2.1.0
 */}
 
+{/* -------------------------------------------------------- REACT */ }
 import { useEffect, useMemo, useState, useRef } from "react";
-import GeoJSONVTMap from "../components/GeoJSONVTMap";
-import LeftSidebar from "../components/LeftAside";
-import RightSidebar from "../components/RightAside";
-import CardsContainer from "../components/CardContainer";
-import { DATA_FILTERS } from "../data/dataFilters";
+
+{/* -------------------------------------------------------- DATA */ }
 import { FIELD_ALIASES, VISIBLE_FIELDS } from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
+import { wmsLayersConfig } from "../config/wmsLayers.config";
 import { panesConfig } from "../config/panes.config";
 import { registryLayersConfig } from "../config/layers.config";
+
+{/* -------------------------------------------------------- COMPONENTS */ }
+import GeoJSONVTMap from "../components/GeoJSONVTMap";
+import CardsContainer from "../components/CardContainer";
 import {
     codMes,
     multiGroupBy,
     applyFilters,
     parseDate,
-    agruparPorDosCampos,
     agruparParaStackedBar,
-    buildLineChartData
 } from "../components/CommonFunctions";
-
-import DoughnutChart from "../components/DoughnutChart";
-import RadarChart from "../components/RadarChart";
-import { SimpleBarChart } from "../components/SimpleBarChart";
-import { StackedBarChart } from "../components/StackedBarChart";
-import PolarChart from "../components/PolarChart";
 import LineChart from "../components/LineChart";
 import Loader from "../components/Loader";
-
 import AttributesTable from "../components/AttributesTable";
 
+{/* -------------------------------------------------------- MAIN FUNCTION */ }
 export default function RegistroDashboard({
     externalLayers = [],
     filters = { filters },
@@ -41,7 +37,6 @@ export default function RegistroDashboard({
     onStats = {},
 }) {
     const [rawData, setRawData] = useState(null);
-    const [statistics, setStatistics] = useState('');
     const mapApiRef = useRef(null);
 
     {/* ============================================================ LOAD PRINCIPAL DATA */ }
@@ -109,11 +104,6 @@ export default function RegistroDashboard({
 
     }, [location]);
 
-    {/* ============================================================ RENDER */ }
-    if (!rawData) {
-        return <Loader />;
-    }
-
     const dataCards = {
         title : 'Alertas SATA',
         subtitle: 'Sistema de Alertas Tempranas Ambientales (SATA)',
@@ -146,17 +136,22 @@ export default function RegistroDashboard({
         ),
     };
 
+    {/* ============================================================ RENDER */ }
+    if (!rawData) {
+        return <Loader />;
+    }
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex flex-col h-screen w-screen overflow-hidden bg-gray-100">
-                <main className="flex flex-1 gap-4 p-4 overflow-hidden">
-                    <aside className="h-full overflow-y-auto">
+                <main className="flex flex-1 md:gap-4 md:p-4 overflow-hidden">
+                    <aside className="h-full overflow-y-auto hidden md:flex">
                         <div className="h-full shadow-md">
                             <CardsContainer data={dataCards} />
                         </div>
                     </aside>
 
-                    <section className="flex-1 h-full min-w-0">
+                    <section className="flex-1 h-full min-w-0 hidden md:block">
                         <div className="h-full bg-white rounded-2xl shadow-md overflow-hidden">
                             <AttributesTable
                                 features={filteredData?.features || []}
@@ -165,42 +160,55 @@ export default function RegistroDashboard({
                         </div>
                     </section>
 
-                    <aside className="w-[32%] min-w-[420px] h-full">
+                    <aside className="w-full md:w-[32%] min-w-[420px] h-full">
                         <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
 
                             {/* Fila 1 - BarChart ocupa ambas columnas */}
-                            <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                                <LineChart
-                                    title={"Evolución mensual por año"}
-                                    data={stats?.anioline}
-                                    config={{
-                                        titleColor: '#10952b',
-                                        titleFontSize: 18,
-                                        titleWeight: 'bold',
-                                        orderByLabels: false, // Default is order by values
-                                        configPalette: {
-                                            palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                            gradientPalette: ["#ef4444", "#3b82f6"],
-                                            categorizedPalette: {
-                                                'ALTA': '#cd6155',
-                                                'MEDIA': '#eb984e',
-                                                'BAJA': '#f4d03f',
-                                            }
-                                        },
-                                        chartStyle: {
-                                            borderColor: 'rgba(66, 141, 67, 0.137)',
-                                            borderWidth: 2,
-                                            hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                            hoverBorderWidth: 3,
-                                        },
-                                    }}
-                                />
+                            <div className="col-span-2 row-span-1 bg-white md:rounded-lg shadow-md overflow-hidden flex items-center flex-col">
+                                <span
+                                    className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
+                                >
+                                    Evolución mensual por año
+                                </span>
+
+                                <div className="w-full h-full flex items-center">
+                                    <LineChart
+                                        title={"Evolución mensual por año"}
+                                        displayTitle={false}
+                                        data={stats?.anioline}
+                                        config={{
+                                            titleColor: '#10952b',
+                                            titleFontSize: 18,
+                                            titleWeight: 'bold',
+                                            labelColor: '#ab1111',
+                                            orderByLabels: false, // Default is order by values
+                                            configPalette: {
+                                                palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
+                                                gradientPalette: ["#ef4444", "#3b82f6"],
+                                                categorizedPalette: {
+                                                    'ALTA': '#cd6155',
+                                                    'MEDIA': '#eb984e',
+                                                    'BAJA': '#f4d03f',
+                                                }
+                                            },
+                                            chartStyle: {
+                                                borderColor: 'rgba(66, 141, 67, 0.137)',
+                                                borderWidth: 2,
+                                                hoverBorderColor: "rgba(30, 159, 228, 0.75)",
+                                                hoverBorderWidth: 3,
+                                            },
+                                        }}
+                                    />
+
+                                </div>
+
                             </div>
 
                             {/* Fila 2 - Radar */}
-                            <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
+                            <div className="col-span-2 row-span-1 bg-white md:rounded-lg shadow-md overflow-hidden flex items-center">
                                 <GeoJSONVTMap
                                     baseMapsConfig={baseMapsConfig}
+                                    wmsLayersConfig={wmsLayersConfig}
                                     panesConfig={panesConfig}
                                     location={location}
                                     data={{
