@@ -239,3 +239,30 @@ export const seguimientoLayersConfig = {
         },
     ]
 }
+
+export const landingLayersConfig = {
+    data: {},
+    defaultLayers: [
+        {
+            id: "provincias",
+            url: "/data/LAYER_PROVINCIAS.geojson",
+            name: "Provincias",
+            type: "tile",
+            pane: 'lowestPane',
+            style: { fill: "rgba(87, 83, 83, 0.3)", stroke: 'rgba(255, 255, 255, 0.72)', width: 1.3 },
+            filterConfig: {
+                provincia: "DPA_DESPRO"
+            }
+        },
+        {
+            id: "alertas_2026",
+            url: "/data/DB_ALERTAS_SATA_A_2026.geojson",
+            name: "Alertas SATA - 2026",
+            type: "tile",
+            pane: 'lowPane',
+            attribution: '<a href="https://snmb.ambiente.gob.ec/snmb/">SNMB</a>',
+            style: { fill: "rgba(242, 255, 0, 0.5)", stroke: 'rgba(3, 16, 200, 0.75)', width: 1 },
+        },
+    ],
+}
+
