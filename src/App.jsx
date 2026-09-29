@@ -257,14 +257,17 @@ function App() {
                                     path="/registro"
                                     element={
                                         <ProtectedRoute>
-                                            <RegistroDashboard
-                                                externalLayers={layers}
-                                                filters={filters}
-                                                location={location}
-                                                onStats={(statistics => {
-                                                    if (statistics) return setStats(statistics);
-                                                })}
-                                            />
+                                            <AccesibleRoute>
+                                                <RegistroDashboard
+                                                    externalLayers={layers}
+                                                    filters={filters}
+                                                    location={location}
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
+                                                    })}
+                                                />
+                                            </AccesibleRoute>
+
                                         </ProtectedRoute>
                                     }
                                 />
