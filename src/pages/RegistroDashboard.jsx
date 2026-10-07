@@ -14,10 +14,14 @@ import { baseMapsConfig } from "../config/basemaps.config";
 import { wmsLayersConfig } from "../config/wmsLayers.config";
 import { panesConfig } from "../config/panes.config";
 import { registryLayersConfig } from "../config/layers.config";
+import { latestAlerts } from "../config/latestAlerts.config";
+import { jsonChartRD1 } from "../config/registerDashboard.config";
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
 import CardsContainer from "../components/CardContainer";
+import ChartContainer from "../components/ChartContainer";
+
 import {
     codMes,
     multiGroupBy,
@@ -136,6 +140,8 @@ export default function RegistroDashboard({
         ),
     };
 
+    const latestDate = latestAlerts.date;
+
     {/* ============================================================ RENDER */ }
     if (!rawData) {
         return <Loader />;
@@ -165,42 +171,13 @@ export default function RegistroDashboard({
 
                             {/* Fila 1 - BarChart ocupa ambas columnas */}
                             <div className="col-span-2 row-span-1 bg-white md:rounded-lg shadow-md overflow-hidden flex items-center flex-col">
-                                <span
-                                    className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
-                                >
-                                    Evolución mensual por año
-                                </span>
-
-                                <div className="w-full h-full flex items-center">
-                                    <LineChart
-                                        title={"Evolución mensual por año"}
-                                        displayTitle={false}
-                                        data={stats?.anioline}
-                                        config={{
-                                            titleColor: '#10952b',
-                                            titleFontSize: 18,
-                                            titleWeight: 'bold',
-                                            labelColor: '#ab1111',
-                                            orderByLabels: false, // Default is order by values
-                                            configPalette: {
-                                                palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                                gradientPalette: ["#ef4444", "#3b82f6"],
-                                                categorizedPalette: {
-                                                    'ALTA': '#cd6155',
-                                                    'MEDIA': '#eb984e',
-                                                    'BAJA': '#f4d03f',
-                                                }
-                                            },
-                                            chartStyle: {
-                                                borderColor: 'rgba(66, 141, 67, 0.137)',
-                                                borderWidth: 2,
-                                                hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                                hoverBorderWidth: 3,
-                                            },
-                                        }}
-                                    />
-
-                                </div>
+                                
+                                <ChartContainer
+                                    data={stats?.anioline}
+                                    json={jsonChartRD1}
+                                    date={latestDate}
+                                    chart="LineChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                />
 
                             </div>
 
