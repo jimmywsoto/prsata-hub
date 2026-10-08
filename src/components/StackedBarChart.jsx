@@ -1,6 +1,41 @@
+{/* 
+    DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
+    CREATE AT: February, 2026.
+    UPDATED AT: October, 2026.
+    VERSIÓN: 2.1.0
+*/}
+
+{/* -------------------------------------------------------- REACT */ }
+import {
+    useEffect,
+    useRef,
+    forwardRef,
+    useImperativeHandle
+} from "react";
+
 import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LogarithmicScale, // Required for log scales in Chart.js v4
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
+ChartJS.register(
+  CategoryScale,
+  LogarithmicScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 {/* ============================================================ DEFAULT CONFIG */ }
 import { orderChartDataByConfigPalette, generateColors } from "./CommonFunctions";
@@ -37,12 +72,14 @@ data = {
 */
 
 {/* ============================================================ STACKED BAR CHART */ }
-export const StackedBarChart = ({
+export const StackedBarChart = forwardRef(({
   title = "Stacked Bar Chart - JWS Ingeniería, 2026",
+  displayTitle = true,
   data = null,
-  height = 360,
+  height = 320,
+  showLegend = true,
   config = {},
-}) => {
+}, ref) => {
   if (
     !data ||
     !Array.isArray(data.labels) ||
@@ -56,6 +93,38 @@ export const StackedBarChart = ({
       </div>
     );
   }
+
+  {/* ============================================================ INIT REF */ }
+  const chartRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+
+    getChart: () =>
+      chartRef.current,
+
+    exportImage: () => {
+      if (!chartRef.current) {
+        return null;
+      }
+
+      return chartRef.current.toBase64Image();
+    },
+
+    getLabels: () => {
+      return (
+        chartRef.current?.data?.labels ??
+        []
+      );
+    },
+
+    getValues: () => {
+      return (
+        chartRef.current?.data?.datasets?.[0]
+          ?.data ?? []
+      );
+    }
+
+  }));
   
   //let labels = [data.datasets[0].label, data.datasets[1].label, data.datasets[2].label];
   //let values = [data.datasets[0].data, data.datasets[1].data, data.datasets[2].data];
@@ -100,19 +169,45 @@ export const StackedBarChart = ({
     responsive: true,
     maintainAspectRatio: false,
 
+    layout: {
+      padding: {
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10
+      }
+    },
+
     plugins: {
       legend: {
-        position: "bottom",
+        display: showLegend,
+        position: "top",
       },
 
       title: {
-        display: true,
+        display: displayTitle,
         text: title,
         font: {
           size: config.titleFontSize || 16,
           weight: config.titleWeight || 'bold',
         },
         color: config.titleColor || 'gray',
+      },
+
+      datalabels: {
+        display: true,
+        color: config.labelColor || '#e0dbdb',
+        anchor: 'end', // Position: 'start', 'center', 'end'
+        align: 'center',  // Alignment: 'top', 'bottom', 'center'
+        font: { weight: 'bold', size: 11 },
+        textStrokeWidth: 0,
+        formatter: (value, context) => {
+          const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+          const percentage = (value / total * 100);
+          // Suprimir si muy pequeño (<5%)
+          return percentage < 5 ? '' : percentage.toFixed(0) + '%';
+          //return percentage < 5 ? '' : value;
+        },
       },
 
       tooltip: {
@@ -130,7 +225,7 @@ export const StackedBarChart = ({
           minRotation: 45,
           autoSkip: false,
           font: {
-            size: 10
+            size: 8
           },
           callback: function (value, index, ticks) {
             const label = this.getLabelForValue(value);
@@ -143,6 +238,7 @@ export const StackedBarChart = ({
       y: {
         beginAtZero: true,
         stacked: true,
+        type: config.scaleType || 'linear', // Options: linear, logarithmic, category, time, timeseries, radialLinear
         ticks: {
           display: true,
           autoSkip: true,
@@ -163,9 +259,11 @@ export const StackedBarChart = ({
       style={{ height }}
     >
       <Bar
+        ref={chartRef}
         data={chartData}
         options={options}
+        plugins={[ChartDataLabels]}
       />
     </div>
   );
-};
+});
