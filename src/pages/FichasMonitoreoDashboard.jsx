@@ -1,12 +1,12 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    VERSIÓN: 2.0.0
+    UPDATED AT: October, 2026
+    VERSIÓN: 2.1.0
 */}
 
 {/* -------------------------------------------------------- REACT */ }
 import { useEffect, useMemo, useState, useRef } from "react";
-import { Map, Database, ChartNoAxesCombined } from 'lucide-react';
 
 {/* -------------------------------------------------------- DATA */ }
 import { FIELD_ALIASES, VISIBLE_FIELDS} from "../data/dataMeta";
@@ -14,33 +14,31 @@ import { baseMapsConfig } from "../config/basemaps.config";
 import { wmsLayersConfig } from "../config/wmsLayers.config";
 import { panesConfig } from "../config/panes.config";
 import { fichasLayersConfig } from "../config/layers.config";
+import { latestAlerts } from "../config/latestAlerts.config";
+import { jsonChartFD1, jsonChartFD2, jsonChartFD3 } from "../config/fichasDashboard.config";
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
 import CardsContainer from "../components/CardContainer";
+import ChartContainer from "../components/ChartContainer";
+import MobileTab from "../components/MobileTab";
 
 import {
     codMes,
     multiGroupBy,
     applyFilters,
     parseDate,
-    agruparParaStackedBar,
 } from "../components/CommonFunctions";
 
-import DoughnutChart from "../components/DoughnutChart";
-import RadarChart from "../components/RadarChart";
-import { SimpleBarChart } from "../components/SimpleBarChart";
-import { StackedBarChart } from "../components/StackedBarChart";
-import PolarChart from "../components/PolarChart";
-import LineChart from "../components/LineChart";
 import Loader from "../components/Loader";
+//import { agruparParaStackedBar } from "../components/CommonFunctions";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 export default function FichasMonitoreoDashboard({
     externalLayers = [],
     filters = { filters },
     location = {},
-    onStats = {},
+    onStats = () => {},
 }) {
     const [rawData, setRawData] = useState(null);
     const [mobileTab, setMobileTab] = useState("map");
@@ -154,6 +152,8 @@ export default function FichasMonitoreoDashboard({
         ),
     };
 
+    const latestDate = latestAlerts.date;
+
     {/* ============================================================ RENDER */ }
     if (!rawData) {
         return <Loader />;
@@ -209,127 +209,43 @@ export default function FichasMonitoreoDashboard({
                         </section>
 
                         <aside className="col-span-2 h-full">
+
                             <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
 
                                 {/* Fila 1 - BarChart ocupa ambas columnas */}
                                 <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
-                                    <span
-                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
-                                    >
-                                        Recuento de Fichas de Monitoreo Satelital (Por Provincia)
-                                    </span>
-
-                                    <div className="w-full h-full flex items-center">
-                                        <SimpleBarChart
-                                            title={"Fichas de Monitoreo por Provincia"}
-                                            displayTitle={false}
-                                            data={stats?.provincia}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                labelColor: '#676767',
-                                                orderByLabels: false, // Default is order by values
-                                                configPalette: {
-                                                    palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                                    gradientPalette: ["#ef4444", "#3b82f6"],
-                                                    categorizedPalette: {
-                                                        'ALTA': '#cd6155',
-                                                        'MEDIA': '#eb984e',
-                                                        'BAJA': '#f4d03f',
-                                                    }
-                                                },
-                                                chartStyle: {
-                                                    borderColor: 'rgba(66, 141, 67, 0.137)',
-                                                    borderWidth: 2,
-                                                    hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                                    hoverBorderWidth: 3,
-                                                },
-                                            }}
-                                        />
-                                    </div>
+                                    
+                                    <ChartContainer
+                                        data={ stats?.provincia }
+                                        json={ jsonChartFD1 }
+                                        date={ latestDate }
+                                        chart="SimpleBarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                    />
 
                                 </div>
 
                                 {/* Fila 2 - Doughnut */}
                                 <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
 
-                                    <span
-                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
-                                    >
-                                        Estadísticas por Delimitación
-                                    </span>
-
-                                    <div className="h-full flex items-center">
-                                        <DoughnutChart
-                                            title={"Estadísticas por Delimitación"}
-                                            displayTitle={false}
-                                            data={stats?.delimitacion}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                labelColor: '#f7f6f6',
-                                                orderByLabels: false, // Default is order by values
-                                                configPalette: {
-                                                    palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                    //gradientPalette: ["#ef4444", "#3b82f6"],
-                                                    //customPalette: ["yellow", "blue", "red"],
-                                                    categorizedPalette: {
-                                                        'ABC-PSB': '#1E8449',
-                                                        'BVP': '#52BE80',
-                                                        'MANGLAR': '#27AE60',
-                                                        'PFE': '#82E0AA',
-                                                        'PFN': '#b3e0c7ff',
-                                                        'SNAP': '#145A32',
-                                                    }
-                                                },
-                                                chartStyle: {
-                                                    borderColor: 'rgb(255, 255, 255)',
-                                                    borderWidth: 2,
-                                                    hoverBorderColor: "rgba(30, 228, 70, 0.75)",
-                                                    hoverBorderWidth: 3,
-                                                },
-                                            }}
-                                        />
-                                    </div>
+                                    <ChartContainer
+                                        data={ stats?.delimitacion }
+                                        json={ jsonChartFD2 }
+                                        date={ latestDate }
+                                        chart="DoughnutChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                    />
 
                                 </div>
 
                                 {/* Fila 2 - Radar */}
                                 <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
                                     
-                                    <span
-                                        className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white truncate"
-                                    >
-                                        Estadísticas por Periodo
-                                    </span>
+                                    <ChartContainer
+                                        data={ stats?.mes }
+                                        json={ jsonChartFD3 }
+                                        date={ latestDate }
+                                        chart="RadarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                    />
 
-                                    <div className="h-full flex items-center">
-                                        <RadarChart
-                                            title={"Estadísticas por Periodo"}
-                                            displayTitle={false}
-                                            data={stats?.mes}
-                                            config={{
-                                                titleColor: '#10952b',
-                                                titleFontSize: 18,
-                                                titleWeight: 'bold',
-                                                orderByLabels: true, // Default (false): is order by values
-                                                chartStyle: {
-                                                    backgroundColor: "rgba(246, 151, 9, 0.41)",
-                                                    borderColor: "rgb(236, 105, 17)",
-                                                    borderWidth: 2,
-                                                    pointBackgroundColor: "rgb(209, 51, 51)",
-                                                    pointBorderColor: "#fff",
-                                                    pointBorderWidth: 2,
-                                                    pointHoverBackgroundColor: "#fff",
-                                                    pointHoverBorderColor: "rgba(59,130,246,1)",
-                                                },
-                                            }}
-                                        />
-
-                                    </div>
-                                    
                                 </div>
 
                             </div>
@@ -379,128 +295,38 @@ export default function FichasMonitoreoDashboard({
                             {mobileTab === "charts" && (
                                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
 
+                                    {/* Fila 1 - BarChart */}
                                     <div className="col-span-2 row-span-1 bg-white rounded-b-lg shadow-md overflow-hidden flex items-center flex-col">
-                                        <span
-                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
-                                        >
-                                            Recuento de Alertas SATA (Por Provincia)
-                                        </span>
-
-                                        {/* Fila 1 - BarChart*/}
-                                        <div className="w-full h-full flex items-center">
-                                            <SimpleBarChart
-                                                title={"Alertas SATA por Provincia"}
-                                                displayTitle={false}
-                                                data={stats?.provincia}
-                                                config={{
-                                                    titleColor: '#10952b',
-                                                    titleFontSize: 18,
-                                                    titleWeight: 'bold',
-                                                    labelColor: '#676767',
-                                                    orderByLabels: false, // Default is order by values
-                                                    configPalette: {
-                                                        palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
-                                                        gradientPalette: ["#ef4444", "#3b82f6"],
-                                                        categorizedPalette: {
-                                                            'ALTA': '#cd6155',
-                                                            'MEDIA': '#eb984e',
-                                                            'BAJA': '#f4d03f',
-                                                        }
-                                                    },
-                                                    chartStyle: {
-                                                        borderColor: 'rgba(66, 141, 67, 0.137)',
-                                                        borderWidth: 2,
-                                                        hoverBorderColor: "rgba(30, 159, 228, 0.75)",
-                                                        hoverBorderWidth: 3,
-                                                    },
-                                                }}
-                                            />
-                                        </div>
+                                        <ChartContainer
+                                            data={ stats?.provincia }
+                                            json={ jsonChartFD1 }
+                                            date={ latestDate }
+                                            chart="SimpleBarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                        />
                                     </div>
 
                                     {/* Fila 2 - Doughnut */}
                                     <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
 
-                                        <span
-                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
-                                        >
-                                            Estadísticas por Severidad
-                                        </span>
+                                        <ChartContainer
+                                            data={ stats?.delimitacion }
+                                            json={ jsonChartFD2 }
+                                            date={ latestDate }
+                                            chart="DoughnutChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                        />
 
-                                        <div className="h-full flex items-center">
-                                            <DoughnutChart
-                                                title={"Estadísticas por Severidad"}
-                                                displayTitle={false}
-                                                data={stats?.severidad}
-                                                config={{
-                                                    titleColor: '#10952b',
-                                                    titleFontSize: 18,
-                                                    titleWeight: 'bold',
-                                                    labelColor: '#f7f6f6',
-                                                    orderByLabels: false, // Default is order by values
-                                                    configPalette: {
-                                                        palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                        //gradientPalette: ["#ef4444", "#3b82f6"],
-                                                        //customPalette: ["yellow", "blue", "red"],
-                                                        categorizedPalette: {
-                                                            'ALTA': '#cd6155',
-                                                            'MEDIA': '#eb984e',
-                                                            'BAJA': '#f4d03f',
-                                                        }
-                                                    },
-                                                    chartStyle: {
-                                                        borderColor: 'rgb(255, 255, 255)',
-                                                        borderWidth: 2,
-                                                        hoverBorderColor: "rgba(30, 228, 70, 0.75)",
-                                                        hoverBorderWidth: 3,
-                                                    },
-                                                }}
-                                            />
-                                        </div>
                                     </div>
 
                                     {/* Fila 2 - Radar */}
                                     <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center flex-col">
 
-                                        <span
-                                            className="bg-green-700/80 w-full p-2 text-center font-bold text-lg text-white"
-                                        >
-                                            Estadísticas por Periodo
-                                        </span>
+                                        <ChartContainer
+                                            data={ stats?.mes }
+                                            json={ jsonChartFD3 }
+                                            date={ latestDate }
+                                            chart="RadarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                                        />
 
-                                        <div className="h-full flex items-center">
-                                            <RadarChart
-                                                title={"Estadísticas por Periodo"}
-                                                displayTitle={false}
-                                                data={stats?.mes}
-                                                config={{
-                                                    titleColor: '#10952b',
-                                                    titleFontSize: 18,
-                                                    titleWeight: 'bold',
-                                                    orderByLabels: true, // Default (false): is order by values
-                                                    configPalette: {
-                                                        palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
-                                                        gradientPalette: ["#ef4444", "#3b82f6"],
-                                                        customPalette: ["yellow", "blue", "red"],
-                                                        categorizedPalette: {
-                                                            'ALTA': '#cd6155',
-                                                            'MEDIA': '#eb984e',
-                                                            'BAJA': '#f4d03f',
-                                                        }
-                                                    },
-                                                    chartStyle: {
-                                                        backgroundColor: "rgba(246, 151, 9, 0.41)",
-                                                        borderColor: "rgb(236, 105, 17)",
-                                                        borderWidth: 2,
-                                                        pointBackgroundColor: "rgb(209, 51, 51)",
-                                                        pointBorderColor: "#fff",
-                                                        pointBorderWidth: 2,
-                                                        pointHoverBackgroundColor: "#fff",
-                                                        pointHoverBorderColor: "rgba(59,130,246,1)",
-                                                    },
-                                                }}
-                                            />
-                                        </div>
                                     </div>
 
                                 </div>
@@ -508,106 +334,10 @@ export default function FichasMonitoreoDashboard({
 
                         </div>
 
-                        <div className="h-16 bg-white flex">
-                            <button
-                                onClick={() => setMobileTab("map")}
-                                aria-label="Mapa"
-                                aria-selected={mobileTab === "map"}
-                                className={`
-                                        flex flex-1 mt-2 mb-2 ml-2 rounded-l-full
-                                        justify-center items-center gap-2
-                                        cursor-pointer transition-all duration-300
-
-                                        ${mobileTab === "map"
-                                        ? "bg-green-700/80 text-white shadow-md"
-                                        : "bg-gray-200 hover:bg-green-300/30"
-                                    }
-                                    `}
-                            >
-                                <span
-                                    className={`
-                                            h-8 w-8 rounded-full flex items-center justify-center
-                                            transition-colors duration-300
-                                            ${mobileTab === "map"
-                                            ? "bg-white text-green-600"
-                                            : "bg-white"
-                                        }
-                                        `}
-                                >
-                                    <Map size={22} />
-                                </span>
-
-                                <span className=" xs:block font-medium">
-                                    Mapa
-                                </span>
-                            </button>
-
-                            <button
-                                onClick={() => setMobileTab("cards")}
-                                aria-label="Datos"
-                                aria-selected={mobileTab === "cards"}
-                                className={`
-                                        flex flex-1 mt-2 mb-2 border-x border-white
-                                        justify-center items-center gap-2
-                                        cursor-pointer transition-all duration-300
-
-                                        ${mobileTab === "cards"
-                                        ? "bg-green-700/80 text-white shadow-md"
-                                        : "bg-gray-200  hover:bg-green-300/30"
-                                    }
-                                    `}
-                            >
-                                <span
-                                    className={`
-                                            h-8 w-8 rounded-full flex items-center justify-center
-                                            transition-colors duration-300
-                                            ${mobileTab === "cards"
-                                            ? "bg-white text-green-600"
-                                            : "bg-white"
-                                        }
-                                        `}
-                                >
-                                    <Database size={22} />
-                                </span>
-
-                                <span className="xs:block font-medium">
-                                    Datos
-                                </span>
-                            </button>
-
-                            <button
-                                onClick={() => setMobileTab("charts")}
-                                aria-label="Gráficos"
-                                aria-selected={mobileTab === "charts"}
-                                className={`
-                                        flex flex-1 mt-2 mb-2 mr-2 rounded-r-full
-                                        justify-center items-center gap-2
-                                        cursor-pointer transition-all duration-300
-
-                                        ${mobileTab === "charts"
-                                        ? "bg-green-700/80 text-white shadow-md"
-                                        : "bg-gray-200 hover:bg-green-300/30"
-                                    }
-                                    `}
-                            >
-                                <span
-                                    className={`
-                                            h-8 w-8 rounded-full flex items-center justify-center
-                                            transition-colors duration-300
-                                            ${mobileTab === "charts"
-                                            ? "bg-white text-green-600"
-                                            : "bg-white"
-                                        }
-                                        `}
-                                >
-                                    <ChartNoAxesCombined size={22} />
-                                </span>
-
-                                <span className=" xs:block font-medium">
-                                    Gráficos
-                                </span>
-                            </button>
-                        </div>
+                        <MobileTab 
+                            mobileTab={mobileTab} 
+                            setMobileTab={setMobileTab}
+                        />
 
                     </div>
 
