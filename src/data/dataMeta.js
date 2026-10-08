@@ -3,7 +3,7 @@ export const META = {
     authority: 'SISTEMA NACIONAL DE MONITOREO DE BOSQUES',
     projectAliase: 'PR-SATA',
     projectDesc: 'Plataforma de Reportes de Alertas Tempranas por Deforestación',
-    copyright: '© 2026 PR-SATA Plataforma de Reportes de Alertas SATA v2.0 | Ministerio de Ambiente y Energía',
+    copyright: '© 2026 PR-SATA Plataforma de Reportes de Alertas SATA v2.1.0 | Ministerio de Ambiente y Energía',
     logo: "/Logo-MAE.png"
 }
 
@@ -88,22 +88,22 @@ export const NAVBAR_TITLES = {
 
   "/registro": {
     extended: 'PR-SATA | Registro de Alertas Tempranas por Deforestación',
-    compacted: 'Registro Alertas'
+    compacted: 'Alertas'
   },
 
   "/seguimiento": {
     extended: 'PR-SATA | Seguimiento de Atención a Alertas Tempranas',
-    compacted: 'Seguimiento Alertas'
+    compacted: 'Seguimiento'
   },
 
   "/fichas": {
     extended: 'PR-SATA | Dashboard de Fichas de Monitoreo Satelital',
-    compacted: 'Fichas Monitoreo'
+    compacted: 'Fichas'
   },
 
   "/report": {
     extended: 'PR-SATA | Generador de Reportes de Alertas Tempranas por Deforestación',
-    compacted: 'Generador Reportes'
+    compacted: 'Reportes'
   },
 
   "/login": {
@@ -118,7 +118,7 @@ export const NAVBAR_TITLES = {
 
   "/reset-pass": {
     extended: 'PR-SATA | Configuración de Contraseña',
-    compacted: 'Restablecer Contraseña'
+    compacted: 'Contraseña'
   },
 
   "/access-panel": {
@@ -132,7 +132,7 @@ export const NAVBAR_TITLES = {
   },
 
   "/planet-validation-viewer": {
-    extended: 'PR-SATA | Visor Satelital PlanetScope',
+    extended: 'PR-SATA | Visor Satelital Planet',
     compacted: 'Visor Satelital'
   }
 }
