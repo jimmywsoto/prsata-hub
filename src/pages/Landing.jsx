@@ -16,6 +16,7 @@ import { baseMapsConfig } from "../config/basemaps.config";
 import { panesConfig } from "../config/panes.config";
 import { heroConfig, contextConfig, capabilitiesConfig, missionConfig, footerConfig } from "../config/landing.config"; 
 import { landingLayersConfig } from "../config/layers.config";
+import { latestAlerts } from "../config/latestAlerts.config";
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
@@ -169,7 +170,7 @@ export default function LandingPage({
                             <div className="relative rounded-[32px] overflow-hidden shadow-2xl border border-white/40 bg-white/40 backdrop-blur">
 
                                 <img
-                                    src={heroConfig.latestAlertsData.img}
+                                    src={latestAlerts.latestAlertsData.img}
                                     className="w-full object-cover h-[320px] md:h-[500px] hover:scale-105 transition duration-700"
                                 />
 
@@ -185,11 +186,11 @@ export default function LandingPage({
 
                                             <div>
                                                 <h4 className="font-bold text-xl">
-                                                    {heroConfig.latestAlertsData.count[0]}
+                                                    {latestAlerts.latestAlertsData.count[0]}
                                                 </h4>
 
                                                 <p className="text-sm text-slate-500">
-                                                    {heroConfig.latestAlertsData.text[0]}
+                                                    {latestAlerts.latestAlertsData.text[0]}
                                                 </p>
                                             </div>
 
@@ -203,11 +204,11 @@ export default function LandingPage({
 
                                             <div>
                                                 <h4 className="font-bold text-xl">
-                                                    {heroConfig.latestAlertsData.count[1]}
+                                                    {latestAlerts.latestAlertsData.count[1]}
                                                 </h4>
 
                                                 <p className="text-sm text-slate-500">
-                                                    {heroConfig.latestAlertsData.text[1]}
+                                                    {latestAlerts.latestAlertsData.text[1]}
                                                 </p>
                                             </div>
 
