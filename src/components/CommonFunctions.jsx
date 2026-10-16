@@ -328,40 +328,41 @@ export function singleGroupBy(source, campo) {
 }
 
 {/* ============================================================ FUNCTION: Multiple Group by field */ }
-export function multiGroupBy(source, campo) {
+export function multiGroupBy(
+    source,
+    campo,
+    opciones = {}
+) {
     const conteo = new Map();
     const features = source?.features || [];
+
+    const {
+        ordenarPor = "recuento",
+        direccion = "desc",
+    } = opciones;
 
     const normalize = (v) => String(v).trim();
 
     for (const f of features) {
         let val = f?.properties?.[campo];
 
-        // Sin dato
         if (
             val === null ||
             val === undefined ||
             val === ""
         ) {
             val = ["Sin dato"];
-        }
-
-        // Si ya viene como array
-        else if (Array.isArray(val)) {
+        } else if (Array.isArray(val)) {
             val = val;
-        }
-
-        // Si viene como texto separado
-        else if (typeof val === "string" && (val.includes(",") || val.includes(";"))) {
+        } else if (
+            typeof val === "string" &&
+            (val.includes(",") || val.includes(";"))
+        ) {
             val = val.split(/[,;]+/);
-        }
-
-        // Valor único
-        else {
+        } else {
             val = [val];
         }
 
-        // Contabilizar cada valor
         for (const item of val) {
             const cleanVal = normalize(item || "Sin dato");
 
@@ -372,8 +373,106 @@ export function multiGroupBy(source, campo) {
         }
     }
 
-    return Array.from(conteo.entries())
-        .sort((a, b) => b[1] - a[1]);
+    const resultado = Array.from(conteo.entries());
+
+    return ordenarEstadistica(resultado, {
+        por: ordenarPor,
+        direccion,
+        tipo: campo,
+    });
+}
+
+{/* ============================================================ FUNCTION: Order by params */ }
+export function ordenarEstadistica(
+    statsArray,
+    {
+        por = "ninguno", // Options: ninguno, recuento, etiqueta, anio, mes
+        direccion = "asc",
+        tipo = null,
+    } = {}
+) {
+    if (!Array.isArray(statsArray)) return statsArray;
+
+    // No modificar el arreglo original
+    const datos = [...statsArray];
+
+    if (por === "ninguno") {
+        return datos;
+    }
+
+    const factor = direccion === "desc" ? -1 : 1;
+
+    const compararTexto = (a, b) =>
+        String(a).localeCompare(String(b), "es", {
+            sensitivity: "base",
+            numeric: true,
+        });
+
+    const obtenerFecha = (label) => {
+        const fecha = parseDate(label);
+        return fecha && !isNaN(fecha.getTime())
+            ? fecha.getTime()
+            : null;
+    };
+
+    return datos.sort((a, b) => {
+        const [labelA, valorA] = a;
+        const [labelB, valorB] = b;
+
+        switch (por) {
+            case "recuento":
+                return (Number(valorA) - Number(valorB)) * factor;
+
+            case "etiqueta":
+                return compararTexto(labelA, labelB) * factor;
+
+            case "anio":
+                return (
+                    (Number(labelA) - Number(labelB)) * factor
+                );
+
+            case "mes": {
+                const fechaA = obtenerFecha(labelA);
+                const fechaB = obtenerFecha(labelB);
+
+                // Si ambas etiquetas son fechas, ordenar cronológicamente.
+                if (fechaA !== null && fechaB !== null) {
+                    return (fechaA - fechaB) * factor;
+                }
+
+                // Si son nombres de meses, utilizar el calendario.
+                const meses = [
+                    "ENERO", "FEBRERO", "MARZO", "ABRIL",
+                    "MAYO", "JUNIO", "JULIO", "AGOSTO",
+                    "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE",
+                    "DICIEMBRE",
+                ];
+
+                const obtenerMes = (label) => {
+                    const texto = String(label).toUpperCase().trim();
+
+                    const fecha = obtenerFecha(label);
+                    if (fecha !== null) {
+                        return new Date(fecha).getUTCMonth();
+                    }
+
+                    return meses.indexOf(texto);
+                };
+
+                const mesA = obtenerMes(labelA);
+                const mesB = obtenerMes(labelB);
+
+                // Etiquetas sin mes válido al final.
+                if (mesA === -1 && mesB !== -1) return 1;
+                if (mesB === -1 && mesA !== -1) return -1;
+
+                return (mesA - mesB) * factor;
+            }
+
+            default:
+                return 0;
+        }
+    });
 }
 
 {/* ============================================================ FUNCTION: Applying filters on data */ }
