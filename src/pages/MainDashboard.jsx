@@ -28,6 +28,7 @@ import {
     multiGroupBy,
     applyFilters,
     parseDate,
+    ordenarEstadistica
 } from "../components/CommonFunctions";                                                                                                                                                                                                                             
 
 import Loader from "../components/Loader";
@@ -88,8 +89,20 @@ export default function MainDashboard({
             parroquia: multiGroupBy(filteredData, "DPA_DESPAR"), // Used in: RightAside
             severidad: multiGroupBy(filteredData, "severidad"), // Used in: RightAside
             delimitacion: multiGroupBy(filteredData, "delimitaci"), // Used in: dataCards, RightAside
-            anio: multiGroupBy(filteredData, "ano"), // Used in: dataCards
-            mes: multiGroupBy(filteredData, "fin"), // Used in: dataCards
+            //anio: multiGroupBy(filteredData, "ano"), // Used in: dataCards
+            //mes: multiGroupBy(filteredData, "fin"), // Used in: dataCards
+            
+            anio: multiGroupBy(filteredData, "ano", {
+                ordenarPor: "anio",
+                direccion: "asc",
+            }),
+
+            mes: multiGroupBy(filteredData, "fin", {
+                ordenarPor: "mes",
+                direccion: "asc",
+            }),
+
+            
             //delxsev: agruparParaStackedBar(filteredData?.features, 'fin', 'severidad', stackedOptions), // Used in: NOT USED HERE
             //anioline: agruparParaStackedBar(filteredData?.features, 'fin', 'ano', stackedOptions) // Used in: NOT USED HERE, BUT IT USED IN REGISTRODASHBOARD.JSX
         };
@@ -118,31 +131,54 @@ export default function MainDashboard({
 
     }, [location]);
 
+    const ordenDataCards = {
+        anio: {
+            por: "anio",
+            direccion: "desc",
+        },
+        mes: {
+            por: "mes",
+            direccion: "desc",
+        },
+        provincia: {
+            por: "recuento",
+            direccion: "desc",
+        },
+        delimitacion: {
+            por: "recuento",
+            direccion: "desc",
+        },
+    };
+
     const dataCards = {
         alertas: stats?.total || 0,
 
         anio: filtrarEstadistica(
             stats?.anio || [],
             filters.anio,
-            "anio"
+            "anio",
+            ordenDataCards.anio
         ),
 
         mes: filtrarEstadistica(
             stats?.mes || [],
             filters.mes,
-            "mes"
+            "mes",
+            ordenDataCards.mes
         ),
 
         provincia: filtrarEstadistica(
             stats?.provincia || [],
             filters.provincia,
-            "provincia"
+            "provincia",
+            ordenDataCards.provincia
         ),
 
         delimitacion: filtrarEstadistica(
             stats?.delimitacion || [],
             filters.delimitacion,
-            "delimitacion"
+            "delimitacion",
+            ordenDataCards.delimitacion
         ),
     };
 
@@ -446,36 +482,54 @@ export default function MainDashboard({
 }
 
 {/* ============================================================ AUXILIAR FUNCTION: FILTER STATISTICS BY SELECTOR */ }
-function filtrarEstadistica(statsArray, selectedValues, tipo = null) {
+export function filtrarEstadistica(
+    statsArray,
+    selectedValues,
+    tipo = null,
+    ordenamiento = {}
+) {
     if (!Array.isArray(statsArray)) return statsArray;
 
-    // Sin filtros activos
-    if (
+    const sinFiltro =
         !selectedValues ||
         selectedValues === "Todos" ||
-        (Array.isArray(selectedValues) && selectedValues.length === 0)
-    ) {
-        return statsArray;
+        (
+            Array.isArray(selectedValues) &&
+            selectedValues.length === 0
+        );
+
+    let resultado = statsArray;
+
+    if (!sinFiltro) {
+        const valores = (
+            Array.isArray(selectedValues)
+                ? selectedValues
+                : [selectedValues]
+        ).map(v => String(v).toUpperCase());
+
+        resultado = statsArray.filter(([label]) => {
+            let comparable = String(label).toUpperCase();
+
+            if (tipo === "mes") {
+                const fecha = parseDate(label);
+
+                if (!fecha || isNaN(fecha.getTime())) {
+                    return false;
+                }
+
+                comparable = codMes(
+                    fecha.getMonth() + 1
+                ).toUpperCase();
+            }
+
+            return valores.includes(comparable);
+        });
     }
 
-    const valores = Array.isArray(selectedValues)
-        ? selectedValues.map(v => String(v).toUpperCase())
-        : [String(selectedValues).toUpperCase()];
-
-    return statsArray.filter(([label]) => {
-        let comparable = String(label).toUpperCase();
-
-        /* ======================= */
-        /* CONVERSIÓN ESPECIAL MES */
-        /* ======================= */
-        if (tipo === "mes") {
-            const fecha = parseDate(label);
-
-            if (!fecha || isNaN(fecha)) return false;
-
-            comparable = codMes(fecha.getMonth() + 1).toUpperCase();
-        }
-
-        return valores.includes(comparable);
+    return ordenarEstadistica(resultado, {
+        por: "ninguno",
+        direccion: "asc",
+        ...ordenamiento,
+        tipo,
     });
 }
