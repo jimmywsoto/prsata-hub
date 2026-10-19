@@ -8,18 +8,15 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
     Map,
-    Database,
-    ChartNoAxesCombined,
     LoaderCircle,
     FileDown,
     FileText,
     BarChart3,
-    Table2,
     PieChart,
     ShieldCheck,
     Satellite,
-    ArrowRight,
-    Trees
+    Trees,
+    CheckCheck
 } from 'lucide-react';
 import axios from "axios";
 
@@ -28,26 +25,26 @@ import { FIELD_ALIASES, VISIBLE_FIELDS } from "../data/dataMeta";
 import { baseMapsConfig } from "../config/basemaps.config";
 import { panesConfig } from "../config/panes.config";
 import { mainLayersConfig } from "../config/layers.config";
+import { wmsLayersConfig } from "../config/wmsLayers.config";
+import { latestAlerts } from "../config/latestAlerts.config";
+import { jsonChart1, jsonChart2, jsonChart3 } from "../config/mainDashboard.config";
+import { jsonChartRD1 } from "../config/registerDashboard.config";
+import { jsonChartFD2, jsonChartFD4 } from "../config/fichasDashboard.config";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+//const backendUrl = 'http://localhost:3000';
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import GeoJSONVTMap from "../components/GeoJSONVTMap";
-import CardsContainer from "../components/CardContainer";
+import ChartContainer from "../components/ChartContainer";
 
 import {
     codMes,
     multiGroupBy,
     applyFilters,
-    parseDate,
     agruparParaStackedBar,
 } from "../components/CommonFunctions";
 
-import DoughnutChart from "../components/DoughnutChart";
-import RadarChart from "../components/RadarChart";
-import { SimpleBarChart } from "../components/SimpleBarChart";
-import LineChart from "../components/LineChart";
-import PolarChart from "../components/PolarChart";
 import Loader from "../components/Loader";
 
 import ReportGenerator from "../components/reports/ReportGenerator";
@@ -132,46 +129,13 @@ export default function ReportGeneratorHTML({
     };
 
     const reportGeneratorRef = useRef(null);
-
     const provinciaChartRef = useRef(null);
-
     const severidadChartRef = useRef(null);
-
     const periodoChartRef = useRef(null);
-
     const delimitacionChartRef = useRef(null);
-
     const evolucionChartRef = useRef(null);
-
     const anioChartRef = useRef(null);
-
-
-
     const [reportData, setReportData] = useState({});
-
-    /*const generateHtml = async (e, report) => {
-        e.preventDefault();
-
-        console.log('ReportData on submit:', report);
-
-        try {
-            const payload = {
-                reportData: report
-            };
-
-            const response = await axios.post(
-                `${backendUrl}/api/report`,
-                payload
-            );
-
-            console.log(response);
-
-        } catch (err) {
-            console.log(err);
-        } finally {
-            console.log('Completo');
-        }
-    };*/
 
     const generatePdf = async (e, report) => {
 
@@ -189,7 +153,6 @@ export default function ReportGeneratorHTML({
                 }
             );
 
-
             const blob = new Blob(
                 [response.data],
                 {
@@ -197,23 +160,16 @@ export default function ReportGeneratorHTML({
                 }
             );
 
-            const url =
-                window.URL.createObjectURL(blob);
-
-            const link =
-                document.createElement('a');
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
 
             link.href = url;
             link.download = 'Reporte_SATA.pdf';
 
             document.body.appendChild(link);
-
             link.click();
-
             link.remove();
-
             window.URL.revokeObjectURL(url);
-
             showToast("Reporte generado con éxito!.", "success");
 
         } catch (err) {
@@ -240,6 +196,8 @@ export default function ReportGeneratorHTML({
 
     };
 
+    const latestDate = latestAlerts.date;
+
     {/* ============================================================ RENDER */ }
     if (!rawData) {
         return <Loader />;
@@ -248,252 +206,89 @@ export default function ReportGeneratorHTML({
     return (
         <div className="min-h-screen overflow-x-hidden">
 
-            {/* HERO */}
-
+            {/* ============================================================ HERO */ }
             <section className="relative overflow-hidden">
 
                 {/* Background */}
-
                 <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-emerald-100"></div>
-
                 <div className="absolute inset-0 patterns opacity-15"></div>
-
                 <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-green-300/20 blur-[140px]"></div>
-
                 <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-emerald-300/15 blur-[170px]"></div>
+                
+                <div className="relative max-w-7xl mx-auto px-6 lg:px-20 pt-8 pb-20">
 
-                <div className="relative max-w-7xl mx-auto px-6 lg:px-20 py-20">
-
-                    <div className="grid lg:grid-cols-[1.5fr_1fr] gap-16 items-center">
+                    <div className="flex items-center ">
 
                         {/* INFORMACIÓN */}
-
                         <div>
 
-                            <div className="inline-flex items-center gap-3 rounded-full bg-green-100 text-green-700 px-5 py-2 font-semibold">
-
-                                <ShieldCheck size={18} />
-
-                                Sistema Nacional de Monitoreo de Bosques
-
-                            </div>
-
-                            <h1 className="mt-8 text-5xl lg:text-6xl font-black leading-tight text-slate-800">
-
+                            <h1 className="text-5xl lg:text-6xl font-black leading-tight text-slate-800">
                                 Reporte de
-
                                 <span className="block bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
-
-                                    Alertas Tempranas
-                                    por Deforestación
-
+                                    Alertas Tempranas por Deforestación
                                 </span>
-
                             </h1>
 
                             <p className="mt-8 text-lg leading-8 text-slate-600 max-w-3xl">
-
                                 Este módulo permite generar un informe técnico consolidado
                                 sobre las alertas tempranas detectadas en el Patrimonio
                                 Forestal Nacional. El documento integra información
                                 cartográfica, estadísticas, indicadores ambientales y
                                 gráficos analíticos obtenidos a partir de los filtros
                                 seleccionados.
-
                             </p>
 
                             {/* Características */}
-
                             <div className="grid sm:grid-cols-2 gap-5 mt-10">
 
                                 <div className="flex items-center gap-4">
-
                                     <Satellite className="text-green-600" />
-
                                     <div>
-
                                         <h4 className="font-semibold">
-
                                             Información Satelital
-
                                         </h4>
 
                                         <p className="text-sm text-slate-500">
-
                                             Datos actualizados del monitoreo forestal.
-
                                         </p>
-
                                     </div>
-
                                 </div>
 
                                 <div className="flex items-center gap-4">
-
                                     <Trees className="text-green-600" />
-
                                     <div>
-
                                         <h4 className="font-semibold">
-
                                             Cobertura Forestal
-
                                         </h4>
 
                                         <p className="text-sm text-slate-500">
-
                                             Identificación de cambios y perturbaciones.
-
                                         </p>
-
                                     </div>
-
                                 </div>
 
                                 <div className="flex items-center gap-4">
-
                                     <FileText className="text-green-600" />
-
                                     <div>
-
                                         <h4 className="font-semibold">
-
                                             Informe Institucional
-
                                         </h4>
-
                                         <p className="text-sm text-slate-500">
-
                                             Documento PDF listo para revisión.
-
                                         </p>
-
                                     </div>
-
                                 </div>
 
                                 <div className="flex items-center gap-4">
-
                                     <ShieldCheck className="text-green-600" />
-
                                     <div>
-
                                         <h4 className="font-semibold">
-
                                             Información Oficial
-
                                         </h4>
-
                                         <p className="text-sm text-slate-500">
-
                                             Generado bajo estándares del SNMB.
-
                                         </p>
-
                                     </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {/* IMAGEN */}
-
-                        <div className="relative">
-
-                            <div className="absolute inset-0 rounded-[36px] bg-gradient-to-br from-green-400 to-emerald-300 blur-3xl opacity-20 scale-110"></div>
-
-                            <div className="relative overflow-hidden rounded-[32px] border border-white/50 bg-white shadow-2xl">
-
-                                <img
-                                    src="/img-deforestacion-01.png"
-                                    alt="Deforestación"
-                                    className="w-full h-[420px] object-cover"
-                                />
-
-                                {/* Tarjeta flotante */}
-
-                                <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/90 backdrop-blur-xl shadow-xl border border-white/50 p-5">
-
-                                    <div className="flex justify-between items-center">
-
-                                        <div>
-
-                                            <p className="text-sm text-slate-500">
-
-                                                Tipo de documento
-
-                                            </p>
-
-                                            <h4 className="text-xl font-bold text-slate-800">
-
-                                                Reporte Técnico PDF
-
-                                            </h4>
-
-                                        </div>
-
-                                        <div className="bg-green-100 rounded-full p-3">
-
-                                            <ArrowRight className="text-green-600" />
-
-                                        </div>
-
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4 mt-5 text-center">
-
-                                        <div>
-
-                                            <p className="text-2xl font-bold text-green-600">
-
-                                                🛰️
-
-                                            </p>
-
-                                            <p className="text-xs text-slate-500">
-
-                                                Mapas
-
-                                            </p>
-
-                                        </div>
-
-                                        <div>
-
-                                            <p className="text-2xl font-bold text-blue-600">
-
-                                                📊
-
-                                            </p>
-
-                                            <p className="text-xs text-slate-500">
-
-                                                Estadísticas
-
-                                            </p>
-
-                                        </div>
-
-                                        <div>
-
-                                            <p className="text-2xl font-bold text-orange-500">
-
-                                                📄
-
-                                            </p>
-
-                                            <p className="text-xs text-slate-500">
-
-                                                PDF
-
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
                                 </div>
 
                             </div>
@@ -506,31 +301,83 @@ export default function ReportGeneratorHTML({
 
             </section>
 
+            {/* ============================================================ SECTION 1: DESCRIPTION */ }
             <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
 
-                <div className="flex gap-14 items-center">
+                <div className="flex flex-col md:flex-row gap-14 items-center justify-center">
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-justify">
                         <h3 className="text-3xl font-bold text-green-400">
-                            Alertas Tempranas por Deforestación SATA
+                            Deforestación en el Ecuador
                         </h3>
 
                         <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
-                            Reporte de identificación de cambios y/o perturbaciones en la cobertura vegetal
-                            del Patrimonio Forestal Nacional.
+                            La <span className="font-semibold">deforestación</span> representa uno de los principales desafíos ambientales del
+                            Ecuador,
+                            al afectar directamente la biodiversidad, los recursos hídricos y la estabilidad climática.
                         </p>
+
+                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
+                            Entre las causas más relevantes se encuentran la <span className="font-semibold">expansión agrícola y
+                                ganadera</span>,
+                            el <span className="font-semibold">cambio de uso del suelo</span>, la <span className="font-semibold">tala
+                                ilegal</span>,
+                            la extracción no planificada de recursos forestales y el desarrollo de infraestructuras sin una adecuada
+                            planificación territorial.
+                        </p>
+
+                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
+                            Frente a esta situación, el <span className="font-semibold">monitoreo satelital de la cobertura forestal </span>
+                            constituye
+                            una herramienta clave para <span className="italic">detectar, analizar y comprender los patrones de pérdida de
+                                bosque</span>,
+                            fortaleciendo la gestión sostenible y la toma de decisiones basadas en evidencia.
+                        </p>
+
+                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
+                            Esta plataforma ha sido desarrollada con el objetivo de <span className="font-semibold">agilitar la presentación de
+                                estadísticas y métricas</span>
+                            que permitan identificar oportunamente la <span className="font-semibold">generación y atención de alertas
+                                satelitales</span>,
+                            facilitando la respuesta institucional frente a los procesos de deforestación.
+                        </p>
+
+                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
+                            De esta manera, contribuye al fortalecimiento del <span className="font-semibold">Sistema Nacional de Monitoreo de
+                                Bosques </span>
+                                y al cumplimiento de los compromisos nacionales e internacionales en materia de <span
+                                className="italic">conservación, cambio climático
+                                y manejo sostenible de los recursos forestales</span>.
+                        </p>
+
+                    </div>
+
+                    <div className="hidden md:flex w-full items-center justify-start">
+                        
+                        <div className=" max-w-64 items-center flex ">
+                            <img src="/img-deforestacion-merged-cut.webp" alt="Imagen 4" className=" h-full rounded-lg object-cover" />
+                        </div>
+
                     </div>
 
                 </div>
 
             </section>
 
-            <section className="py-10 px-6 lg:px-20 max-w-7xl mx-auto flex-1 h-[600px] min-w-0">
+            {/*<iframe width="960" height="540" src="https://www.planet.com/compare/?id=2026-mae-db-snmb-001-E4tPMq9vg" />*/}
+
+            {/* ============================================================ SECTION 2: DISTRIBUTION */ }
+            {sectionHeader(
+                "Distribución de Alertas Tempranas en el Ecuador Continental",
+                "Mapa de la distribución de Alertas Tempranas por Deforestación en el Ecuador Continental",
+            )}
+
+            <section className="py-10 px-6 lg:px-20 max-w-7xl mx-auto flex-1 h-[600px] min-w-0 border-b border-green-200/80">
                 <div className="h-full bg-white rounded-2xl shadow-md overflow-hidden">
                     <GeoJSONVTMap
                         baseMapsConfig={baseMapsConfig}
+                        wmsLayersConfig={wmsLayersConfig}
                         panesConfig={panesConfig}
-                        location={location}
                         data={{
                             geojson: filteredData,
                             name: "Clúster SATA",
@@ -558,42 +405,11 @@ export default function ReportGeneratorHTML({
                 </div>
             </section>
 
-
-            {/*<section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
-
-                <div className="flex gap-14 items-center">
-
-                    <div className="space-y-2">
-                        <h3 className="text-3xl font-bold text-green-400">
-                            Estadísticas de Monitoreo en Ecuador Continental
-                        </h3>
-
-                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
-                            En la siguiente tabla encontrará recuento a nivel provincial de alertas identificadas y categorizadas en función del grado de severidad y delimitación ambiental.
-                        </p>
-                    </div>
-
-                </div>
-
-            </section>*/}
-
-            <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
-
-                <div className="flex gap-14 items-center">
-
-                    <div className="space-y-2">
-                        <h3 className="text-3xl font-bold text-green-400">
-                            Gráficos Estadísticos
-                        </h3>
-
-                        <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
-                            Resumen Estadístico de Indicadores de Deforestación según Alertas Tempranas
-                        </p>
-                    </div>
-
-                </div>
-
-            </section>
+            {/* ============================================================ SECTION 3: CHARTS */ }
+            {sectionHeader(
+                "Gráficos Estadísticos",
+                "Resumen Estadístico de Indicadores de Deforestación según Alertas Tempranas",
+            )}
 
             {/* GRAFICOS 1 */}
             <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
@@ -601,16 +417,27 @@ export default function ReportGeneratorHTML({
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[1200px]">
 
                     {/* Fila 1 - PROVINCIA */}
-                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <SimpleBarChart
+                    
+                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.provincia}
+                            json={jsonChart1}
+                            date={latestDate}
+                            chart="SimpleBarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={provinciaChartRef}
+                        />
+
+                        {/*<SimpleBarChart
                             ref={provinciaChartRef}
-                            title={"Alertas SATA por Provincia"}
+                            title={"Recuento de Alertas SATA (Por Provincia)"}
+                            displayTitle={false}
                             data={stats?.provincia}
                             height={500}
                             config={{
                                 titleColor: '#10952b',
                                 titleFontSize: 18,
                                 titleWeight: 'bold',
+                                labelColor: '#676767',
                                 orderByLabels: false, // Default is order by values
                                 configPalette: {
                                     palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
@@ -628,20 +455,30 @@ export default function ReportGeneratorHTML({
                                     hoverBorderWidth: 3,
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                     {/* Fila 2 - SEVERIDAD*/}
-                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <DoughnutChart
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.severidad}
+                            json={jsonChart2}
+                            date={latestDate}
+                            chart="DoughnutChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={severidadChartRef}
+                        />
+                        
+                        {/*<DoughnutChart
                             ref={severidadChartRef}
                             title={"Estadísticas por Severidad"}
+                            displayTitle={true}
                             data={stats?.severidad}
                             height={400}
                             config={{
                                 titleColor: '#10952b',
                                 titleFontSize: 18,
                                 titleWeight: 'bold',
+                                labelColor: '#f7f6f6',
                                 orderByLabels: false, // Default is order by values
                                 configPalette: {
                                     palette: 'categorizedPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
@@ -660,12 +497,20 @@ export default function ReportGeneratorHTML({
                                     hoverBorderWidth: 3,
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                     {/* Fila 2 - PERIODO */}
-                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <RadarChart
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.mes}
+                            json={jsonChart3}
+                            date={latestDate}
+                            chart="RadarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={periodoChartRef}
+                        />
+
+                        {/*<RadarChart
                             ref={periodoChartRef}
                             title={"Estadísticas por Periodo"}
                             data={stats?.mes}
@@ -696,12 +541,18 @@ export default function ReportGeneratorHTML({
                                     pointHoverBorderColor: "rgba(59,130,246,1)",
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                 </div>
 
             </section>
+            
+            {/* ============================================================ SECTION 4: CHARTS 2 */ }
+            {sectionHeader(
+                "Evaluación mensual por año",
+                "Evolución mensual acorde al registro de Alertas Tempranas por Deforestación",
+            )}
 
             {/* GRAFICOS 2 */}
             <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
@@ -709,8 +560,16 @@ export default function ReportGeneratorHTML({
                 <div className="grid grid-cols-2 grid-rows-2 gap-2 h-[1200px]">
 
                     {/* Fila 1 - EVOLUCION MENSUAL POR AÑO */}
-                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <LineChart
+                    <div className="col-span-2 row-span-1 bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.anioline}
+                            json={jsonChartRD1}
+                            date={latestDate}
+                            chart="LineChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={evolucionChartRef}
+                        />
+                        
+                        {/*<LineChart
                             ref={evolucionChartRef}
                             title={"Evolución mensual por año"}
                             data={stats?.anioline}
@@ -718,6 +577,7 @@ export default function ReportGeneratorHTML({
                                 titleColor: '#10952b',
                                 titleFontSize: 18,
                                 titleWeight: 'bold',
+                                labelColor: '#676767',
                                 orderByLabels: false, // Default is order by values
                                 configPalette: {
                                     palette: 'gradientPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette'
@@ -735,12 +595,20 @@ export default function ReportGeneratorHTML({
                                     hoverBorderWidth: 3,
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                     {/* Fila 2 - DELIMITACIÓN */}
-                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <DoughnutChart
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.delimitacion}
+                            json={jsonChartFD2}
+                            date={latestDate}
+                            chart="DoughnutChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={delimitacionChartRef}
+                        />
+
+                        {/*<DoughnutChart
                             ref={delimitacionChartRef}
                             title={"Estadísticas por Delimitación"}
                             data={stats?.delimitacion}
@@ -770,12 +638,20 @@ export default function ReportGeneratorHTML({
                                     hoverBorderWidth: 3,
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                     {/* Fila 2 - AÑO */}
-                    <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden flex items-center">
-                        <PolarChart
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden flex items-center">
+                        <ChartContainer
+                            data={stats?.anio}
+                            json={jsonChartFD4}
+                            date={latestDate}
+                            chart="PolarChart" // Options: SimpleBarChart, StackedBarChart, DoughnutChart, LineChart, RadarChart, PolarChart
+                            chartRef={anioChartRef}
+                        />
+
+                        {/*<PolarChart
                             ref={anioChartRef}
                             title={"Estadísticas por Año"}
                             data={stats?.anio}
@@ -806,14 +682,20 @@ export default function ReportGeneratorHTML({
                                     pointHoverBorderColor: "rgba(59,130,246,1)",
                                 },
                             }}
-                        />
+                        />*/}
                     </div>
 
                 </div>
 
             </section>
 
-            <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
+            {/* ============================================================ SECTION 5: REPORT GENERATOR */ }
+            {sectionHeader(
+                "Generador de Reportes",
+                "Herramienta para la generación de reportes de Alertas Tempranas por Deforestación",
+            )}
+
+            <section className="max-w-7xl mx-auto">
 
                 <div className="flex gap-14 items-center">
                     <ReportGenerator
@@ -850,132 +732,83 @@ export default function ReportGeneratorHTML({
                         <div className="relative overflow-hidden rounded-3xl border border-green-200 bg-gradient-to-br from-white via-green-50 to-emerald-100 shadow-2xl">
 
                             {/* Decoración */}
-
                             <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-green-300/30 blur-3xl"></div>
-
                             <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-emerald-300/20 blur-3xl"></div>
-
                             <div className="relative z-10 p-10 lg:p-14">
 
                                 <div className="grid lg:grid-cols-[2fr_1fr] gap-12 items-center">
 
                                     {/* Información */}
-
                                     <div>
-
                                         <div className="inline-flex items-center gap-3 rounded-full bg-green-100 text-green-700 px-5 py-2 font-semibold">
-
                                             <ShieldCheck size={18} />
-
                                             Generador Inteligente de Reportes
-
                                         </div>
 
                                         <h2 className="mt-6 text-4xl lg:text-5xl font-extrabold text-slate-800">
-
-                                            Genere un informe técnico completo en un solo clic
-
+                                            Generador de Reportes
                                         </h2>
 
                                         <p className="mt-6 text-lg leading-8 text-slate-600 max-w-3xl">
-
                                             El sistema consolida automáticamente toda la información
                                             espacial y estadística correspondiente a los filtros
-                                            seleccionados, generando un documento institucional en
-                                            formato PDF listo para impresión, revisión técnica o
-                                            distribución oficial.
-
+                                            seleccionados, generando un documento en formato PDF listo 
+                                            para impresión o revisión técnica con información preliminar.
                                         </p>
 
                                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
 
-                                            <div className="bg-white rounded-2xl shadow p-5 flex gap-4 items-start">
+                                            <div className="bg-white rounded-2xl shadow p-5 flex flex-col gap-4 items-start">
+    
+                                                <div className="flex w-full gap-2">
 
-                                                <Map className="text-green-600 mt-1" />
-
-                                                <div>
+                                                    <span className="bg-green-200/80 rounded-full p-1"><Map size={16} /></span>
 
                                                     <h4 className="font-semibold">
                                                         Mapa Temático
                                                     </h4>
 
-                                                    <p className="text-sm text-slate-500">
-                                                        Vista cartográfica con las alertas filtradas.
-                                                    </p>
-
                                                 </div>
 
+                                                <p className="text-xs text-slate-500">
+                                                    Vista cartográfica con alertas filtradas.
+                                                </p>
+                                                
                                             </div>
 
-                                            <div className="bg-white rounded-2xl shadow p-5 flex gap-4 items-start">
+                                            <div className="bg-white rounded-2xl shadow p-5 flex flex-col gap-4 items-start">
+    
+                                                <div className="flex w-full gap-2">
 
-                                                <BarChart3 className="text-blue-600 mt-1" />
-
-                                                <div>
+                                                    <span className="bg-green-200/80 rounded-full p-1"><BarChart3 size={16} /></span>
 
                                                     <h4 className="font-semibold">
                                                         Estadísticas
                                                     </h4>
 
-                                                    <p className="text-sm text-slate-500">
-                                                        Indicadores nacionales y provinciales.
-                                                    </p>
-
                                                 </div>
 
+                                                <p className="text-xs text-slate-500">
+                                                    Indicadores nacionales y provinciales.
+                                                </p>
+                                                
                                             </div>
 
-                                            <div className="bg-white rounded-2xl shadow p-5 flex gap-4 items-start">
+                                            <div className="bg-white rounded-2xl shadow p-5 flex flex-col gap-4 items-start">
+    
+                                                <div className="flex w-full gap-2">
 
-                                                <PieChart className="text-orange-500 mt-1" />
-
-                                                <div>
+                                                    <span className="bg-green-200/80 rounded-full p-1"><PieChart size={16} /></span>
 
                                                     <h4 className="font-semibold">
                                                         Gráficos
                                                     </h4>
 
-                                                    <p className="text-sm text-slate-500">
-                                                        Visualizaciones automáticas del periodo.
-                                                    </p>
-
                                                 </div>
 
-                                            </div>
-
-                                            <div className="bg-white rounded-2xl shadow p-5 flex gap-4 items-start">
-
-                                                <Table2 className="text-purple-600 mt-1" />
-
-                                                <div>
-
-                                                    <h4 className="font-semibold">
-                                                        Tablas
-                                                    </h4>
-
-                                                    <p className="text-sm text-slate-500">
-                                                        Información consolidada por provincia y categoría.
-                                                    </p>
-
-                                                </div>
-
-                                            </div>
-
-                                            <div className="bg-white rounded-2xl shadow p-5 flex gap-4 items-start">
-
-                                                <FileText className="text-red-500 mt-1" />
-
-                                                <div>
-
-                                                    <h4 className="font-semibold">
-                                                        Documento PDF
-                                                    </h4>
-
-                                                    <p className="text-sm text-slate-500">
-                                                        Informe listo para impresión y distribución.
-                                                    </p>
-
-                                                </div>
+                                                <p className="text-xs text-slate-500">
+                                                    Visualizaciones automáticas del periodo.
+                                                </p>
 
                                             </div>
 
@@ -984,62 +817,53 @@ export default function ReportGeneratorHTML({
                                     </div>
 
                                     {/* Panel lateral */}
-
                                     <div className="rounded-3xl bg-white shadow-xl border border-green-100 p-8">
 
                                         <h3 className="text-xl font-bold text-slate-700">
-
                                             Contenido del Informe
-
                                         </h3>
 
                                         <ul className="mt-6 space-y-4">
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Resumen Ejecutivo
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Resumen Ejecutivo
                                             </li>
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Mapa de Alertas
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Mapa de Alertas
                                             </li>
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Estadísticas Nacionales
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Estadísticas Nacionales
                                             </li>
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Indicadores Provinciales
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Indicadores Provinciales
                                             </li>
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Gráficos Comparativos
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Gráficos Comparativos
                                             </li>
 
                                             <li className="flex items-center gap-3">
-
-                                                ✅ Tablas Consolidadas
-
+                                                <span className="bg-green-200/80 rounded-full p-1"><CheckCheck size={16}/></span> 
+                                                Tablas Consolidadas
                                             </li>
 
                                         </ul>
 
-                                        <div className="mt-8 border-t pt-6">
+                                        <div className="mt-8 border-t border-green-500/60 pt-6">
 
                                             <button
                                                 disabled={generating}
                                                 onClick={handleGenerateReport}
                                                 className={`w-full rounded-2xl py-4 font-semibold text-white shadow-xl transition-all duration-300 flex items-center justify-center gap-3
-                                ${generating
+                                                    ${generating
                                                         ? "bg-gray-400 cursor-not-allowed"
                                                         : "bg-green-600 hover:bg-green-500 hover:-translate-y-1"
                                                     }`}
@@ -1047,32 +871,25 @@ export default function ReportGeneratorHTML({
 
                                                 {generating ? (
                                                     <>
-
                                                         <LoaderCircle
                                                             size={22}
                                                             className="animate-spin"
                                                         />
 
                                                         Generando Reporte...
-
                                                     </>
                                                 ) : (
                                                     <>
-
                                                         <FileDown size={22} />
-
                                                         Generar Reporte PDF
-
                                                     </>
                                                 )}
 
                                             </button>
 
                                             <p className="text-xs text-center text-slate-500 mt-4">
-
                                                 El proceso puede tardar algunos segundos dependiendo
                                                 de la cantidad de información procesada.
-
                                             </p>
 
                                         </div>
@@ -1093,4 +910,30 @@ export default function ReportGeneratorHTML({
 
         </div>
     );
+}
+
+{/* ============================================================ AUX FUNCTIONS */ }
+function sectionHeader(
+    title = "Section Title",
+    subtitle = "Section Subtitle",
+) {
+    return (
+        <section className="py-5 px-6 lg:px-20 max-w-7xl mx-auto border-b border-green-200/80">
+
+            <div className="flex gap-14 items-center">
+
+                <div className="space-y-2">
+                    <h3 className="text-3xl font-bold text-green-400">
+                        {title}
+                    </h3>
+
+                    <p className="text-[var(--color-pattern-text)] leading-relaxed text-lg">
+                        {subtitle}
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+    )
 }
