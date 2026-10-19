@@ -5,6 +5,8 @@
 */}
 
 {/* -------------------------------------------------------- COMPONENTS */ }
+import { forwardRef } from "react";
+
 import { SimpleBarChart } from "./SimpleBarChart";
 import DoughnutChart from "./DoughnutChart";
 import RadarChart from "./RadarChart";
@@ -13,12 +15,12 @@ import PolarChart from "./PolarChart";
 import { StackedBarChart } from "./StackedBarChart";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
-const ChartRenderer = ({
+const ChartRenderer = forwardRef(function ChartRenderer({
     chart,
     data,
     json,
     fullscreen
-}) => {
+}, ref) {
 
     const commonProps = {
         title: json.title,
@@ -34,6 +36,7 @@ const ChartRenderer = ({
             return (
                 <SimpleBarChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
@@ -41,6 +44,7 @@ const ChartRenderer = ({
             return (
                 <StackedBarChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
@@ -48,6 +52,7 @@ const ChartRenderer = ({
             return (
                 <DoughnutChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
@@ -55,6 +60,7 @@ const ChartRenderer = ({
             return (
                 <LineChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
@@ -62,6 +68,7 @@ const ChartRenderer = ({
             return (
                 <RadarChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
@@ -69,6 +76,7 @@ const ChartRenderer = ({
             return (
                 <PolarChart
                     {...commonProps}
+                    ref={ref}
                 />
             );
 
