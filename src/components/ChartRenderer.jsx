@@ -87,6 +87,6 @@ const ChartRenderer = forwardRef(function ChartRenderer({
                 </div>
             );
     }
-};
+});
 
 export default ChartRenderer;
