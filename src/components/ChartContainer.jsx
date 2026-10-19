@@ -21,7 +21,8 @@ const ChartContainer = ({
     data, 
     json, 
     date,
-    chart = 'SimpleBarChart' 
+    chart = 'SimpleBarChart' ,
+    chartRef,
 }) => {
 
     const [openInfo, setOpenInfo] = useState(false);
@@ -72,6 +73,7 @@ const ChartContainer = ({
             {/* CHART */}
             <div className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
                 <ChartRenderer
+                    ref={chartRef}
                     chart={chart}
                     data={data}
                     json={json}
