@@ -105,3 +105,37 @@ export const jsonChartFD3 = {
     height: 320,
     fullHeight: 700,
 };
+
+export const jsonChartFD4 = {
+    title: "Estadísticas por Periodo",
+    displayTitle: false,
+    info: 'Gráfico de radar correspondiente al recuento de Fichas de Monitoreo, registros por periodo.',
+    config: {
+        titleColor: '#10952b',
+        titleFontSize: 18,
+        titleWeight: 'bold',
+        orderByLabels: true, // Default (false): is order by values
+        configPalette: {
+            palette: 'defaultPalette', // Palettes: 'defaultPalette', 'randomPalette', 'gradientPalette', 'customPalette', 'categorizedPalette'
+            gradientPalette: ["#ef4444", "#3b82f6"],
+            customPalette: ["yellow", "blue", "red"],
+            categorizedPalette: {
+                'ALTA': '#cd6155',
+                'MEDIA': '#eb984e',
+                'BAJA': '#f4d03f',
+            }
+        },
+        chartStyle: {
+            //backgroundColor: "rgba(246, 151, 9, 0.41)",
+            //borderColor: "rgb(247, 243, 241)",
+            borderWidth: 2,
+            pointBackgroundColor: "rgb(209, 51, 51)",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "rgba(59,130,246,1)",
+        },
+    },
+    height: 320,
+    fullHeight: 700,
+};
