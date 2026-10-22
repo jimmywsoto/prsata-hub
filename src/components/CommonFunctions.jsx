@@ -475,6 +475,59 @@ export function ordenarEstadistica(
     });
 }
 
+{/* ============================================================ FUNCTION: Filter Stats */ }
+export function filtrarEstadistica(
+    statsArray,
+    selectedValues,
+    tipo = null,
+    ordenamiento = {}
+) {
+    if (!Array.isArray(statsArray)) return statsArray;
+
+    const sinFiltro =
+        !selectedValues ||
+        selectedValues === "Todos" ||
+        (
+            Array.isArray(selectedValues) &&
+            selectedValues.length === 0
+        );
+
+    let resultado = statsArray;
+
+    if (!sinFiltro) {
+        const valores = (
+            Array.isArray(selectedValues)
+                ? selectedValues
+                : [selectedValues]
+        ).map(v => String(v).toUpperCase());
+
+        resultado = statsArray.filter(([label]) => {
+            let comparable = String(label).toUpperCase();
+
+            if (tipo === "mes") {
+                const fecha = parseDate(label);
+
+                if (!fecha || isNaN(fecha.getTime())) {
+                    return false;
+                }
+
+                comparable = codMes(
+                    fecha.getMonth() + 1
+                ).toUpperCase();
+            }
+
+            return valores.includes(comparable);
+        });
+    }
+
+    return ordenarEstadistica(resultado, {
+        por: "ninguno",
+        direccion: "asc",
+        ...ordenamiento,
+        tipo,
+    });
+}
+
 {/* ============================================================ FUNCTION: Applying filters on data */ }
 export const applyFilters = (geojson, filters, config = {}) => {
   if (!geojson || !geojson.features) return geojson;
