@@ -3,7 +3,7 @@ export const META = {
     authority: 'SISTEMA NACIONAL DE MONITOREO DE BOSQUES',
     projectAliase: 'PR-SATA',
     projectDesc: 'Plataforma de Reportes de Alertas Tempranas por Deforestación',
-    copyright: '© 2026 PR-SATA Plataforma de Reportes de Alertas SATA v2.1.0 | Ministerio de Ambiente y Energía',
+    copyright: '© 2026 PR-SATA Plataforma de Reportes de Alertas SATA v2.1.1 | Ministerio de Ambiente y Energía',
     logo: "/Logo-MAE.png"
 }
 
@@ -16,49 +16,51 @@ export const FIELD_ALIASES = {
   name: "Nombre Delimitación",
   severidad: "Severidad",
   fin: "Registro",
-  fm_area: "Área (ha)",
+  ano: "Año de registro",
+  area: "Área (ha)",
+  fm_cod: "ID. Ficha",
   fm_este: "Coord. X (m)",
   fm_norte: "Coord. Y (m)",
   fm_date1: "Monitoreo 1",
   fm_date2: "Monitoreo 2",
-  fm_monit: "Periodo monitoreo",
-  PROVINCIA: "Provincia",
-  CANTÓN: "Cantón",
-  PARROQUIA: "Parroquia",
-  CÓDIGO: "ID. SATA",
-  DELIMITACI: "Delimitación",
-  NAME: "Nombre Delimitación",
-  SEVERIDAD: "Severidad",
-  FECHA_FIN: "Registro",
-  TIPO_DE_AC: "Tipo de Acción",
-  ESTADO_PRO: "Estado del Proceso",
-  DESCRIPCIO: "Descripción"
+  fm_mntr: "Periodo Monitoreo",
+  fm_sensor1: "Fuente 1",
+  fm_sensor2: "Fuente 2",
+  fm_resol1: "Resolución 1",
+  fm_resol2: "Resolución 2",
 };
 
 export const VISIBLE_FIELDS = {
   basic: [
+    "cod",
     "DPA_DESPRO",
     "DPA_DESCAN",
     "DPA_DESPAR",
-    "cod",
     "delimitaci",
     "name",
     "severidad",
     "fin",
   ],
   extended: [
+    "fm_cod",
+    "cod",
     "DPA_DESPRO",
     "DPA_DESCAN",
     "DPA_DESPAR",
-    "cod",
     "delimitaci",
     "name",
-    "fm_area",
+    "area",
+    "ano",
     "fm_este",
     "fm_norte",
     "fm_date1",
+    "fm_sensor1",
+    "fm_resol1",
     "fm_date2",
-    "fm_monit"
+    "fm_sensor2",
+    "fm_resol2",
+    "fm_mntr",
+    "fm_story"
   ],
   alternative: [
     "PROVINCIA",
@@ -83,22 +85,27 @@ export const NAVBAR_TITLES = {
 
   "/dashboard": {
     extended: 'PR-SATA | Dashboard de Alertas Tempranas por Deforestación',
-    compacted: 'Dashboard'
+    compacted: 'Dashboard Alertas'
   },
 
   "/registro": {
     extended: 'PR-SATA | Registro de Alertas Tempranas por Deforestación',
-    compacted: 'Alertas'
+    compacted: 'Dashboard Registro'
   },
 
   "/seguimiento": {
     extended: 'PR-SATA | Seguimiento de Atención a Alertas Tempranas',
-    compacted: 'Seguimiento'
+    compacted: 'Dashboard Seguimiento'
   },
 
   "/fichas": {
     extended: 'PR-SATA | Dashboard de Fichas de Monitoreo Satelital',
-    compacted: 'Fichas'
+    compacted: 'Dashboard Fichas'
+  },
+
+  "/fichas-monitoreo": {
+    extended: 'PR-SATA | Fichas de Monitoreo Satelital',
+    compacted: 'Fichas Monitoreo'
   },
 
   "/report": {
