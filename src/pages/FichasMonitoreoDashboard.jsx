@@ -2,7 +2,7 @@
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
     UPDATED AT: October, 2026
-    VERSIÓN: 2.1.0
+    VERSIÓN: 2.1.1
 */}
 
 {/* -------------------------------------------------------- REACT */ }
@@ -28,6 +28,7 @@ import {
     multiGroupBy,
     applyFilters,
     parseDate,
+    filtrarEstadistica,
 } from "../components/CommonFunctions";
 
 import Loader from "../components/Loader";
@@ -60,8 +61,8 @@ export default function FichasMonitoreoDashboard({
         const filterConfig = {
             provincia: "DPA_DESPRO",
             delimitacion: "delimitaci",
-            mes: "fm_monit",
-            anio: "fm_anio",
+            mes: "fm_mntr",
+            anio: "ano",
             dateFormat: "YYYY-MM-DD"
         }
 
@@ -86,10 +87,21 @@ export default function FichasMonitoreoDashboard({
             provincia: multiGroupBy(filteredData, "DPA_DESPRO"),
             canton: multiGroupBy(filteredData, "DPA_DESCAN"),
             parroquia: multiGroupBy(filteredData, "DPA_DESPAR"),
-            severidad: multiGroupBy(filteredData, "fm_severid"),
+            severidad: multiGroupBy(filteredData, "severidad"),
             delimitacion: multiGroupBy(filteredData, "delimitaci"),
-            anio: multiGroupBy(filteredData, "fm_anio"),
-            mes: multiGroupBy(filteredData, "fm_monit"),
+            //anio: multiGroupBy(filteredData, "ano"),
+            //mes: multiGroupBy(filteredData, "fm_monit"),
+
+            anio: multiGroupBy(filteredData, "ano", {
+                ordenarPor: "anio",
+                direccion: "asc",
+            }),
+
+            mes: multiGroupBy(filteredData, "fm_mntr", {
+                ordenarPor: "mes",
+                direccion: "asc",
+            }),
+
             //delxsev: agruparParaStackedBar(filteredData?.features, 'fm_monit', 'fm_severidad', stackedOptions),
             //anioline: agruparParaStackedBar(filteredData?.features, 'fm_monit', 'fm_anio', stackedOptions)
         };
@@ -101,8 +113,6 @@ export default function FichasMonitoreoDashboard({
 
     useEffect(() => {
         if (!location || !mapApiRef.current || !mapApiRef2.current) return;
-
-        console.log(location.lat, location.lng)
 
         mapApiRef.current.setLocation({
             lat: location.lat,
@@ -120,6 +130,25 @@ export default function FichasMonitoreoDashboard({
         
     }, [location]);
 
+    const ordenDataCards = {
+        anio: {
+            por: "anio",
+            direccion: "desc",
+        },
+        mes: {
+            por: "mes",
+            direccion: "desc",
+        },
+        provincia: {
+            por: "recuento",
+            direccion: "desc",
+        },
+        delimitacion: {
+            por: "recuento",
+            direccion: "desc",
+        },
+    };
+
     const dataCards = {
         title : 'Fichas de Monitoreo Satelital',
         subtitle: 'Sistema Nacional de Monitoreo de Bosques (SNMB)',
@@ -130,25 +159,29 @@ export default function FichasMonitoreoDashboard({
         anio: filtrarEstadistica(
             stats?.anio || [],
             filters.anio,
-            "anio"
+            "anio",
+            ordenDataCards.anio
         ),
 
         mes: filtrarEstadistica(
             stats?.mes || [],
             filters.mes,
-            "mes"
+            "mes",
+            ordenDataCards.mes
         ),
 
         provincia: filtrarEstadistica(
             stats?.provincia || [],
             filters.provincia,
-            "provincia"
+            "provincia",
+            ordenDataCards.provincia
         ),
 
         delimitacion: filtrarEstadistica(
             stats?.delimitacion || [],
             filters.delimitacion,
-            "delimitacion"
+            "delimitacion",
+            ordenDataCards.delimitacion
         ),
     };
 
@@ -347,39 +380,4 @@ export default function FichasMonitoreoDashboard({
 
         </div>
     );
-}
-
-{/* ============================================================ AUXILIAR FUNCTION: FILTER STATISTICS BY SELECTOR */ }
-function filtrarEstadistica(statsArray, selectedValues, tipo = null) {
-    if (!Array.isArray(statsArray)) return statsArray;
-
-    // Sin filtros activos
-    if (
-        !selectedValues ||
-        selectedValues === "Todos" ||
-        (Array.isArray(selectedValues) && selectedValues.length === 0)
-    ) {
-        return statsArray;
-    }
-
-    const valores = Array.isArray(selectedValues)
-        ? selectedValues.map(v => String(v).toUpperCase())
-        : [String(selectedValues).toUpperCase()];
-
-    return statsArray.filter(([label]) => {
-        let comparable = String(label).toUpperCase();
-
-        /* ======================= */
-        /* CONVERSIÓN ESPECIAL MES */
-        /* ======================= */
-        if (tipo === "mes") {
-            const fecha = parseDate(label);
-
-            if (!fecha || isNaN(fecha)) return false;
-
-            comparable = codMes(fecha.getMonth() + 1).toUpperCase();
-        }
-
-        return valores.includes(comparable);
-    });
 }
