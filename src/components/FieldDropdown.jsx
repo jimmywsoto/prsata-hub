@@ -1,3 +1,10 @@
+{/* 
+    DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
+    CREATE AT: February, 2026.
+    UPDATED AT: October, 2026
+    VERSIÓN: 2.1.1
+*/}
+
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -67,33 +74,23 @@ export default function FieldDropdown({
 }) {
 
     const [open, setOpen] = useState(false);
-
     const [search, setSearch] = useState("");
-
     const ref = useRef();
 
     useEffect(() => {
 
         const click = (e) => {
-
             if (
                 ref.current &&
                 !ref.current.contains(e.target)
             ) {
-
                 setOpen(false);
-
             }
-
         };
 
         document.addEventListener("mousedown", click);
 
-        return () =>
-            document.removeEventListener(
-                "mousedown",
-                click
-            );
+        return () => document.removeEventListener("mousedown", click);
 
     }, []);
 
@@ -114,11 +111,7 @@ export default function FieldDropdown({
             .includes(search.toLowerCase())
     );
 
-    const selected =
-        processedFields.find(
-            f => f.name === value
-        ) ??
-        processedFields[0];
+    const selected = processedFields.find( f => f.name === value ) ?? processedFields[0];
 
     const replaceText = (text) => {
 
@@ -140,43 +133,36 @@ export default function FieldDropdown({
         >
 
             {/* -------------------------------- BUTTON */}
-
             <button
-
-                onClick={() =>
-                    setOpen(!open)
-                }
-
+                onClick={() => setOpen(!open)}
                 className="
                     w-full
                     flex
                     items-center
                     justify-between
-                    rounded-xl
-                    bg-green-700/70
-                    hover:bg-green-700
-                    text-white
+                    rounded-full
+                    border
+                    border-green-700/30
+                    hover:bg-green-700/10
+                    hover:text-green-700/60
+                    font-semibold
                     px-3
                     py-2
                     transition
+                    cursor-pointer
                 "
-
             >
 
                 <div className="flex items-center gap-2">
-
+                    
                     {
                         selected.type === "default"
-
                             ? <Type className="w-4 h-4 text-slate-500" />
-
                             : getIcon(selected.type)
                     }
 
-                    <span className="text-sm">
-
-                        {selected.name}
-
+                    <span className="text-sm truncate">
+                        Ordenar por: {selected.name}
                     </span>
 
                 </div>
@@ -193,95 +179,44 @@ export default function FieldDropdown({
             </button>
 
             {/* -------------------------------- MENU */}
-
             {
-
                 open && (
-
                     <div
-
-                        className="
-                            absolute
-                            mt-2
-                            w-full
-                            rounded-xl
-                            bg-white
-                            shadow-2xl
-                            overflow-hidden
-                        "
-
+                        className="absolute mt-2 w-full rounded-lg bg-white shadow-2xl overflow-hidden"
                     >
 
                         {/* SEARCH */}
-
                         <div className="p-2">
 
                             <div
-                                className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                    bg-gray-300/30
-                                    rounded-lg
-                                    px-2
-                                "
+                                className="flex items-center gap-2 bg-gray-300/30 rounded-lg px-2"
                             >
-
                                 <Search className="w-4 h-4 text-slate-400" />
-
                                 <input
-
                                     value={search}
-
                                     onChange={(e) =>
                                         setSearch(
                                             e.target.value
                                         )
                                     }
-
                                     placeholder={placeholder}
-
-                                    className="
-                                        w-full
-                                        bg-transparent
-                                        outline-none
-                                        py-2
-                                        text-sm
-                                    "
-
+                                    className="w-full bg-transparent outline-none py-2 text-sm"
                                 />
-
                             </div>
 
                         </div>
 
                         {/* OPTIONS */}
-
-                        <div
-                            className="
-                                max-h-64
-                                overflow-y-auto
-                            "
-                        >
-
+                        <div className="max-h-64 overflow-y-auto">
                             {
-
                                 filtered.map(field => (
-
                                     <button
-
                                         key={field.name}
-
                                         onClick={() => {
-
                                             onChange(field.name);
-
                                             setOpen(false);
-
                                             setSearch("");
-
                                         }}
-
                                         className={`
                                             w-full
                                             flex
@@ -290,39 +225,26 @@ export default function FieldDropdown({
                                             px-3
                                             py-2
                                             transition
+                                            cursor-pointer
 
                                             ${value === field.name
-
                                                 ? "bg-green-600/30"
-
                                                 : "hover:bg-green-600/20"
                                             }
 
                                         `}
                                     >
-
                                         <div className="flex items-center gap-2">
-
                                             {
-
                                                 field.type === "default"
-
                                                     ?
-
                                                     <Type className="w-4 h-4 text-slate-500" />
-
                                                     :
-
                                                     getIcon(field.type)
-
                                             }
-
-                                            <span className="truncate max-w-64">
-
+                                            <span className="truncate max-w-64 text-sm">
                                                 {replaceText(field.name)}
-
                                             </span>
-
                                         </div>
 
                                         <div className="flex items-center gap-2">
@@ -369,15 +291,9 @@ export default function FieldDropdown({
                             }
 
                         </div>
-
                     </div>
-
                 )
-
             }
-
         </div>
-
     );
-
 }
