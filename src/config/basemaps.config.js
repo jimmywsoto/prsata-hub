@@ -30,3 +30,30 @@ export const baseMapsConfig = {
     }
   }
 };
+
+export const analiticBasemapsConfig = {
+  osm: {
+    name: "OpenStreetMap",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    options: {
+      attribution: "&copy; OpenStreetMap contributors",
+      pane: "lowestPane"
+    }
+  },
+  satellite: {
+    name: "Satélite",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    options: {
+      pane: "lowestPane"
+    },
+    default: true
+  },
+
+  topo: {
+    name: "Topográfico",
+    url: "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
+    options: {
+      pane: "lowestPane"
+    },
+  },
+};
