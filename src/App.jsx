@@ -1,7 +1,8 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    VERSIÓN: 2.0.0
+    UPDATED AT: October, 2026
+    VERSIÓN: 2.1.1
 */}
 
 {/* -------------------------------------------------------- REACT */ }
@@ -41,6 +42,7 @@ import ResetPassPage from "./pages/ResetPassPage";
 import AdminPlanetCachePanel from "./pages/AdminPlanetCachePanel";
 
 import ReportGeneratorHTML from "./pages/ReportGeneratorHTML";
+import FichasMonitoreo from "./pages/FichasMonitoreo";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 function App() {
@@ -236,6 +238,25 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
+
+                                <Route
+                                    path="/fichas-monitoreo"
+                                    element={
+                                        <ProtectedRoute>
+                                            <AccesibleRoute>
+                                                <FichasMonitoreo
+                                                    externalLayers={layers}
+                                                    filters={filters}
+                                                    location={location}
+                                                    onStats={(statistics => {
+                                                        if (statistics) return setStats(statistics);
+                                                    })}
+                                                />
+                                            </AccesibleRoute>
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                
                                 <Route
                                     path="/seguimiento"
                                     element={
