@@ -25,6 +25,11 @@ export const accessPanelsRoutes = {
         right:true
     },
 
+    "/fichas-monitoreo": {
+        left:true,
+        right:true
+    },
+
     "/report": {
         left:true,
         right:true
