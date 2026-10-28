@@ -105,6 +105,7 @@ const ContentFichas = ({ content }) => {
             este: feature.fm_este,
             norte: feature.fm_norte,
             driveId: feature.id_drive,
+            planetUrl: feature.fm_story,
         };
     }, [content]);
 
@@ -223,6 +224,15 @@ const ContentFichas = ({ content }) => {
                     </p>
                 </div>
             </section>
+
+            {json.planetUrl !== null &&
+                json.planetUrl !== undefined &&
+                String(json.planetUrl).trim() !== "" && (
+                    <section className="h-64 border border-green-700/10 rounded-lg shadow-lg">
+                        <iframe className="w-full h-full" src={`${json.planetUrl}`} />
+                    </section>
+                )
+            }
 
             {/* Ubicación */}
             <Section
