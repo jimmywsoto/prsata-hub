@@ -1,7 +1,8 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    VERSIÓN: 2.0.0
+    UPDATED AT: October, 2026.
+    VERSIÓN: 2.1.1
 */}
 
 {/* -------------------------------------------------------- REACT */ }
@@ -83,7 +84,7 @@ const Navbar = ({
         
         {
             icon: LayoutDashboard,
-            label: "Dashboard",
+            label: "Dashboard de Alertas",
             path: "/dashboard",
             show: true,
             style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
@@ -98,52 +99,59 @@ const Navbar = ({
         },
         {
             icon: CalendarDays,
-            label: "Fichas de Monitoreo",
+            label: "Dashboard de Fichas",
             path: "/fichas",
             show: true,
             style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+        },
+        {
+            icon: CalendarDays,
+            label: "Registro de Fichas",
+            path: "/fichas-monitoreo",
+            show: true,
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
             icon: User,
             label: "Editar perfil",
             path: "/profile",
             show: true,
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: FileText,
             label: "Generar Reporte",
             path: "/report",
             show: true,
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
             icon: ShieldUser,
             label: "Access Panel",
             path: "/access-panel",
             show: user?.role === "superadmin",
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: CloudSync,
             label: "Update Cache",
             path: "/cache-panel",
             show: user?.role === "superadmin",
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
         {
             icon: SatelliteDish,
             label: "Val-SAT",
             path: "/planet-validation-viewer",
             show: ["superadmin", "admin"].includes(user?.role),
-            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
         },
         {
             icon: MapPin,
             label: "Atención a Alertas",
             path: "/seguimiento",
             show: user?.role === "superadmin",
-            style: "text-gray-500 hover:text-white bg-gray-200 hover:bg-[var(--color-hover)]",
+            style: "text-gray-500 hover:text-white bg-gray-300 hover:bg-[var(--color-hover)]",
         },
     ];
     
