@@ -823,11 +823,19 @@ export default function GeoJSONVTMap({
 
   const setLocation = ({ lat, lng, zoom = 14, popup = null }) => {
     const map = mapInstance.current;
-    if (!map || lat == null || lng == null) return;
 
-    // remover anterior
+    if (
+      !map ||
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng)
+    ) {
+      return;
+    }
+
+    // Eliminar el grupo anterior completo.
     if (markerRef.current) {
       map.removeLayer(markerRef.current);
+      markerRef.current = null;
     }
 
     const marker = L.circleMarker([lat, lng], {
@@ -841,28 +849,30 @@ export default function GeoJSONVTMap({
     });
 
     if (popup) {
-      marker.bindPopup(popup).openPopup();
+      marker.bindPopup(popup);
     }
 
-    marker.addTo(map);
-
-    // Halo visual
     const halo = L.circle([lat, lng], {
-      radius: 300, // metros
+      radius: 300,
       color: "#ff3b3b",
       weight: 1,
       fillOpacity: 0.1,
       pane: "mediumPane",
-    }).addTo(map);
+    });
 
-    // agrupar ambos para poder eliminarlos juntos
-    const group = L.layerGroup([marker, halo]);
+    const group = L.layerGroup([halo, marker]);
 
-    map.flyTo([lat, lng], zoom, { duration: 1.2 });
-
+    group.addTo(map);
     markerRef.current = group;
-  };
 
+    map.flyTo([lat, lng], zoom, {
+      duration: 1.2,
+    });
+
+    if (popup) {
+      marker.openPopup();
+    }
+  };
   // ================================================= GETFEATUREINFO FUNCTIONS
   const getFeatureInfoUrl = (map, layerConfig, latlng) => {
     const version = layerConfig.version || "1.3.0";
