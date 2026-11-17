@@ -1,8 +1,8 @@
 {/* 
     DEVELOPER: Jimmy W. Cabrera Soto (jimmy.cabrera@ambienteyenergia.gob.ec - jwsingenieria@gmail.com)
     CREATE AT: February, 2026.
-    UPDATED AT: September, 2026
-    VERSIÓN: 2.1.0
+    UPDATED AT: November, 2026
+    VERSIÓN: 2.1.2
 */}
 
 {/* -------------------------------------------------------- REACT */ }
@@ -12,7 +12,7 @@ import geojsonvt from "geojson-vt";
 import proj4 from "proj4";
 import leafletImage from 'leaflet-image';
 import { toPng } from 'html-to-image';
-import { Layers } from 'lucide-react';
+import { Layers, DownloadCloud } from 'lucide-react';
 
 {/* -------------------------------------------------------- DATA */ }
 import "leaflet/dist/leaflet.css";
@@ -28,12 +28,13 @@ proj4.defs(
   "+proj=utm +zone=17 +south +datum=WGS84 +units=m +no_defs"
 );
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"; //const API_URL = 'http://localhost:3000'
 
 {/* -------------------------------------------------------- COMPONENTS */ }
 import { codMes, formatValue, parseDate } from "./CommonFunctions";
 import LayerControl from "./LayerControl";
 import WMSFeatureInfo from "./WMSFeatureInfo";
+import GeospatialExporter from "./GeospatialExporter";
 
 {/* -------------------------------------------------------- MAIN FUNCTION */ }
 export default function GeoJSONVTMap({
@@ -65,6 +66,8 @@ export default function GeoJSONVTMap({
   const [featureInfoOpen, setFeatureInfoOpen] = useState(false);
 
   const featureInfoAbortControllerRef = useRef(null);
+
+  const [exporterOpen, setExporterOpen] = useState(false);
 
   {/* ============================================================ INIT MAP */ }
   useEffect(() => {
@@ -873,6 +876,7 @@ export default function GeoJSONVTMap({
       marker.openPopup();
     }
   };
+
   // ================================================= GETFEATUREINFO FUNCTIONS
   const getFeatureInfoUrl = (map, layerConfig, latlng) => {
     const version = layerConfig.version || "1.3.0";
@@ -965,7 +969,7 @@ export default function GeoJSONVTMap({
       );
     }
 
-      /*
+    /*
      * ============================================================
      * PROXY
      * ============================================================
@@ -1073,7 +1077,7 @@ export default function GeoJSONVTMap({
             e.latlng
           );
 
-            /*console.log(
+          /*console.log(
             "[WMS GetFeatureInfo]",
             {
               url
@@ -1441,12 +1445,10 @@ export default function GeoJSONVTMap({
 
       <div className=" absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2">
 
-        {/* ==================================================
-        PANELES
-        ================================================== */}
-
+        {/* ============================================================ PANELS */ }
         <div className="flex flex-col items-start gap-2">
 
+          {/* -------------------------------------------------------- PANEL - LAYERS */}
           <LayerControl
             collapsed={collapsed}
             setCollapsed={setCollapsed}
@@ -1459,23 +1461,29 @@ export default function GeoJSONVTMap({
             position="static"
           />
 
+          {/* -------------------------------------------------------- PANEL - GEOMETRY TOOLS */}
+          {exporterOpen && (
+            <div className="flex bg-white w-64 rounded-lg shadow">
+              <GeospatialExporter 
+                data={data} 
+                open={exporterOpen} 
+                onClose={() => {
+                  setExporterOpen(false);
+                }}
+              />
+            </div>
+            
+          )}
+
         </div>
 
-        {/* ==================================================
-        BLOQUE DE BOTONES
-        ================================================== */}
+        {/* ============================================================ BUTTONS BLOCK */ }
         <div className="flex flex-row items-center gap-2">
 
-          {/* ----------------------------------------------
-          BOTÓN CONTROL LAYERS
-          ---------------------------------------------- */}
+          {/* -------------------------------------------------------- CONTROL BUTTON - LAYERS */}
           <button
             type="button"
-            onClick={() =>
-              setCollapsed(
-                (value) => !value
-              )
-            }
+            onClick={() => setCollapsed( (value) => !value ) }
             className="flex items-center justify-center rounded-full bg-white  p-2 text-green-700/80 shadow-xl transition  hover:bg-slate-100 cursor-pointer"
             title={
               collapsed
@@ -1486,10 +1494,26 @@ export default function GeoJSONVTMap({
             <Layers size={20} />
           </button>
 
+          {/* -------------------------------------------------------- CONTROL BUTTON - GEOMETRY TOOLS */}
+          <button
+            type="button"
+            onClick={() => setExporterOpen( (value) => !value ) }
+            className="relative flex items-center justify-center rounded-full bg-white p-2 text-green-700/80 shadow-xl transition hover:bg-slate-100 cursor-pointer "
+            title={
+              exporterOpen
+                ? "Ocultar Exporter"
+                : "Mostrar Exporter"
+            }
+          >
+            <DownloadCloud size={20} />
+            <span className="absolute bottom-7 left-4 bg-amber-300 text-amber-700 text-[9px] px-1 rounded-full">New</span>
+          </button>
+
         </div>
 
       </div>
 
+      {/* ============================================================ WMS FEATURES INFO */ }
       <WMSFeatureInfo
         open={featureInfoOpen}
         results={featureInfo}
