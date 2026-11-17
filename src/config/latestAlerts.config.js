@@ -6,10 +6,10 @@
 
 export const latestAlerts = {
     latestAlertsData: {
-        text: ["Provincias en Alerta", "Alertas en Septiembre de 2026"],
-        count: [18, 308],
+        text: ["Provincias en Alerta", "Alertas en Octubre de 2026"],
+        count: [17, 375],
         img: "/imsat-creation-03.webp",
     },
-    date: 'Septiembre 16, 2026',
+    date: 'Noviembre 17, 2026',
     geojson: '/data/LATEST.geojson',
 };
